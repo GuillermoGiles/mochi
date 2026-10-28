@@ -48,13 +48,14 @@ export const corsPreflight = () =>
   });
 
 // Solo se aceptan las direcciones de vuelta de asistentes conocidos: Claude, Gemini (web), Antigravity, ChatGPT,
-// y programas en tu propia compu (Claude Code, Gemini CLI). Así nadie puede usar el inicio de sesión de Mochi
+// programas en tu propia compu (Claude Code, Gemini CLI) y la extensión de Mochi para Chrome (*.chromiumapp.org). Así nadie puede usar el inicio de sesión de Mochi
 // para mandar tus permisos a otro lado.
 const TRUSTED = ['claude.ai', 'claude.com', 'antigravity.google', 'gemini.google.com', 'chatgpt.com', 'chat.openai.com'];
 function allowedRedirect(uri: string) {
   try {
     const u = new URL(uri);
-    if (u.protocol === 'https:') return TRUSTED.includes(u.hostname) || u.hostname.endsWith('.google.com');
+    if (u.protocol === 'https:')
+      return TRUSTED.includes(u.hostname) || u.hostname.endsWith('.google.com') || u.hostname.endsWith('.chromiumapp.org');
     return u.protocol === 'http:' && ['localhost', '127.0.0.1'].includes(u.hostname);
   } catch {
     return false;
@@ -423,3 +424,15 @@ export async function mcp(req: Request) {
 
 // Que la clave de la sesión exista (si no, nada de esto funciona).
 export const mcpReady = () => !!process.env.SESSION_SECRET && !!process.env.GOOGLE_CLIENT_ID;
+
+// ---------------------------------------------------------------------------
+// Extensión de Chrome: con el permiso guardado (el mismo de los conectores), devuelve un acceso a Drive
+// de corta duración. La extensión sube los archivos directo a Drive, como la app.
+export async function extToken(req: Request) {
+  const body = (await req.json().catch(() => ({}))) as { refresh_token?: string };
+  const r = await unseal<Refresh>(body.refresh_token);
+  if (!r || r.k !== 'rt') return json(401, { error: 'sin_sesion' });
+  const { ok, data } = await googleToken({ refresh_token: r.rt, grant_type: 'refresh_token' });
+  if (!ok) return json(401, { error: 'sin_sesion' });
+  return json(200, { access_token: data.access_token, expires_in: data.expires_in, user: r.user });
+}

@@ -11,3 +11,4 @@ dev-dist
 *.tsbuildinfo
 .claude/
 linkedin/
+.tmp-zip/

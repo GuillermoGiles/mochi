@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <title>Mochi</title>
+    <link rel="stylesheet" href="./src/style.css" />
+  </head>
+  <body>
+    <header class="top">
+      <img src="icons/48.png" alt="" class="logo" />
+      <div class="grow">
+        <div class="title">Mochi</div>
+        <div class="sub">Guardar apunte</div>
+      </div>
+      <button id="gear" class="icon-btn" title="Opciones" aria-label="Opciones" hidden>
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+      </button>
+      <div id="menu" class="menu" hidden>
+        <button id="logout">Desconectar mi cuenta</button>
+      </div>
+    </header>
+
+    <!-- Sin conectar -->
+    <section id="login" hidden>
+      <p class="muted">Conectá tu cuenta de Mochi para guardar pizarras y archivos directo en tus materias.</p>
+      <button id="connect" class="primary">Conectar con Mochi</button>
+      <p class="hint">Entrás con la misma cuenta de Google que usás en Mochi.</p>
+    </section>
+
+    <!-- Conectado -->
+    <section id="main" hidden>
+      <div id="scene" class="card" hidden>
+        <span class="badge">Pizarra Excalidraw</span>
+        <div id="scene-info" class="muted small">Diagrama detectado en esta pestaña</div>
+      </div>
+      <div id="no-scene" class="card muted small" hidden>
+        Abrí una pizarra en <b>excalidraw.com</b> para guardarla, o arrastrá un archivo acá abajo.
+      </div>
+
+      <div id="scene-fields" hidden>
+        <label for="name">Nombre del archivo</label>
+        <input id="name" type="text" spellcheck="false" />
+
+        <label>Formato a guardar</label>
+        <div class="radios">
+          <label class="radio"><input type="radio" name="fmt" value="excalidraw" checked /> <b>.excalidraw</b> <span class="muted">(pizarra editable)</span></label>
+          <label class="radio"><input type="radio" name="fmt" value="png" /> <b>.png</b> <span class="muted">(imagen)</span></label>
+        </div>
+      </div>
+
+      <label for="materia">Guardar en la materia</label>
+      <select id="materia"></select>
+
+      <label for="folder">Carpeta (opcional)</label>
+      <select id="folder"></select>
+
+      <div id="drop" class="drop">O arrastrá un archivo acá para subirlo</div>
+      <input id="file" type="file" multiple hidden />
+
+      <button id="save" class="primary" hidden>Guardar en Mochi</button>
+      <p id="status" class="status" role="status"></p>
+
+      <footer class="foot">
+        <span id="who" class="muted small ellipsis"></span>
+        <a id="open" href="#" target="_blank" class="link">Ver en Mochi ↗</a>
+      </footer>
+    </section>
+
+    <section id="loading" class="center muted">Cargando…</section>
+    <script type="module" src="./src/popup.ts"></script>
+  </body>
+</html>

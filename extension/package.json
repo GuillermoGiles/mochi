@@ -1,0 +1,10 @@
+{
+  "name": "mochi-extension",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Extensión de Chrome para guardar pizarras de Excalidraw y archivos directo en Mochi",
+  "dependencies": {
+    "@excalidraw/utils": "0.1.8"
+  }
+}

@@ -15,7 +15,7 @@ import {
   seal,
   unseal,
 } from './_shared.js';
-import { authorize, corsPreflight, googleCallback, mcp, metadata, register, token } from './_mcp.js';
+import { authorize, corsPreflight, extToken, googleCallback, mcp, metadata, register, token } from './_mcp.js';
 
 // Pedidos previos de navegadores (CORS) para el conector de Claude.
 export const OPTIONS = () => corsPreflight();
@@ -269,6 +269,7 @@ export async function POST(req: Request) {
   if (action === 'mcp') return mcp(req);
   if (action === 'register') return register(req);
   if (action === 'oauth-token') return token(req);
+  if (action === 'ext-token') return extToken(req);
   if (action !== 'ia') return respond(404, { error: 'no_existe' });
 
   const session = await unseal(readCookie(req, SESSION));
