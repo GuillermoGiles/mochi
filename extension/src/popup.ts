@@ -298,22 +298,6 @@ async function saveScene() {
   }
 }
 
-async function uploadFiles(list: FileList | File[]) {
-  const files = [...list];
-  if (!files.length) return;
-  try {
-    const { parent, where } = destination();
-    for (let i = 0; i < files.length; i++) {
-      status(files.length > 1 ? `Subiendo ${i + 1} de ${files.length}…` : `Subiendo ${files[i].name}…`);
-      await upload(files[i], files[i].name, files[i].type || 'application/octet-stream', parent);
-    }
-    await remember();
-    status(files.length === 1 ? `Guardado en ${where}` : `${files.length} archivos guardados en ${where}`, 'ok');
-  } catch (e) {
-    status(e instanceof Error ? e.message : 'Algo salió mal', 'err');
-  }
-}
-
 async function start() {
   show('loading');
   show('login', false);
@@ -375,28 +359,26 @@ $('materia').addEventListener('change', () => {
   updateLink();
 });
 $('folder').addEventListener('change', updateLink);
+$('open').addEventListener('click', (e) => {
+  e.preventDefault();
+  chrome.runtime.sendMessage({ type: 'open-mochi', url: $<HTMLAnchorElement>('open').href });
+  window.close();
+});
 $('save').addEventListener('click', saveScene);
-$('gear').addEventListener('click', () => ($('menu').hidden = !$('menu').hidden));
+$('gear').addEventListener('click', (e) => {
+  e.stopPropagation();
+  $('menu').hidden = !$('menu').hidden;
+});
+// Tocar en cualquier otro lado cierra el menú.
+document.addEventListener('click', (e) => {
+  if (!$('menu').contains(e.target as Node)) $('menu').hidden = true;
+});
 $('logout').addEventListener('click', async () => {
   await store.clear();
   access = null;
   $('menu').hidden = true;
   show('gear', false);
   start();
-});
-
-const drop = $('drop');
-drop.addEventListener('click', () => $<HTMLInputElement>('file').click());
-$<HTMLInputElement>('file').addEventListener('change', (e) => uploadFiles((e.target as HTMLInputElement).files ?? []));
-drop.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  drop.classList.add('over');
-});
-drop.addEventListener('dragleave', () => drop.classList.remove('over'));
-drop.addEventListener('drop', (e) => {
-  e.preventDefault();
-  drop.classList.remove('over');
-  uploadFiles(e.dataTransfer?.files ?? []);
 });
 
 start();

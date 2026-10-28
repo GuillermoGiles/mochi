@@ -149,23 +149,6 @@ select:focus {
 .radio input {
   accent-color: var(--accent);
 }
-.drop {
-  margin-top: 12px;
-  border: 1px dashed var(--line);
-  border-radius: 8px;
-  padding: 10px;
-  text-align: center;
-  color: var(--muted);
-  font-size: 12.5px;
-  cursor: pointer;
-  transition: 0.15s;
-}
-.drop:hover,
-.drop.over {
-  border-color: var(--accent);
-  color: var(--ink);
-  background: rgb(229 72 77 / 0.08);
-}
 .primary {
   display: block;
   width: 100%;

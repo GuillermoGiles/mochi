@@ -8,6 +8,10 @@ export default defineConfig({
     outDir: 'dist',
     emptyOutDir: true,
     chunkSizeWarningLimit: 5000,
-    rollupOptions: { input: 'popup.html' },
+    rollupOptions: {
+      input: { popup: 'popup.html', background: 'src/background.ts' },
+      // El proceso de fondo tiene que tener un nombre fijo (lo nombra el manifest).
+      output: { entryFileNames: (c) => (c.name === 'background' ? 'background.js' : 'assets/[name]-[hash].js') },
+    },
   },
 });
