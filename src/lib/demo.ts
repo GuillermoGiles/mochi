@@ -41,6 +41,7 @@ export const demoFiles: DFile[] = [
   { id: 't2', name: 'Modelo ER.excalidraw', mimeType: 'application/json', modifiedTime: now, parents: ['c-tp1'] },
   { id: 't3', name: 'Consigna TP2.pdf', mimeType: 'application/pdf', modifiedTime: now, parents: ['c-tp2'] },
   { id: 't4', name: 'Rúbrica de TPs.xlsx', mimeType: 'application/octet-stream', modifiedTime: now, parents: ['c-tp'] },
+  { id: 'ppt1', name: 'Presentación final (Grupo 4).pptx', mimeType: 'application/vnd.openxmlformats-officedocument.presentationml.presentation', modifiedTime: now, parents: ['c-ent'] },
   { id: 's1', name: 'Programa de la materia.pdf', mimeType: 'application/pdf', modifiedTime: now, parents: ['m1'] },
 ];
 

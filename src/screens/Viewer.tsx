@@ -6,7 +6,7 @@ import { canSendToApp, sendFiles } from '../lib/send';
 import { Button, ConfirmModal, FileBadge, IconButton, Menu, PromptModal, Spinner, errorText, useToast } from '../components/ui';
 import { notifyChanged, useFacu } from '../lib/context';
 import { fileCache, getFile, rename, trash, type DFile } from '../lib/drive';
-import { dropOffline, fileBlob, keepOffline, offlineMeta } from '../lib/fileBlob';
+import { dropOffline, fileBlob, keepOffline, offlineMeta, slidesBlob } from '../lib/fileBlob';
 import { offlineIds } from '../lib/offline';
 import { itemOf, whereLabel } from '../lib/facu';
 import { baseName, canPreview, extOf, kindOf, saveBlob } from '../lib/files';
@@ -44,7 +44,7 @@ export default function Viewer({ id }: { id: string }) {
   useEffect(() => {
     if (!file || !previewable) return;
     let alive = true;
-    fileBlob(file).then(
+    (kindOf(file) === 'slides' ? slidesBlob(file) : fileBlob(file)).then(
       (b) => alive && setBlob(b),
       (e) => alive && setError(errorText(e)),
     );
@@ -126,7 +126,8 @@ export default function Viewer({ id }: { id: string }) {
   async function onDownload() {
     if (!file) return;
     try {
-      saveBlob(blob ?? (await fileBlob(file)), file.name);
+      // En las presentaciones lo que se ve es un PDF: se descarga el archivo original.
+      saveBlob((kind !== 'slides' && blob) || (await fileBlob(file)), file.name);
     } catch (e) {
       toast(errorText(e));
     }
@@ -157,8 +158,11 @@ export default function Viewer({ id }: { id: string }) {
     }
   }
 
+  // Si Drive no pudo convertir la presentación (por ejemplo, si es muy pesada), queda abrirla en Drive.
+  const slidesFailed = kind === 'slides' && !!error;
+
   let body;
-  if (error) body = <Center>{error}</Center>;
+  if (error && !slidesFailed) body = <Center>{error}</Center>;
   else if (!file) body = <Center><Spinner /></Center>;
   else if (kind === 'excalidraw')
     body = (
@@ -181,12 +185,16 @@ export default function Viewer({ id }: { id: string }) {
         </p>
       </Center>
     );
-  else if (!previewable)
+  else if (!previewable || slidesFailed)
     body = (
       <Center>
         <FileBadge file={file} size="lg" />
         <p className="font-bold text-lg mt-4">{baseName(file.name)}</p>
-        <p className="text-muted mt-1 max-w-xs">Este tipo de archivo (.{extOf(file.name)}) se ve mejor en Google Drive.</p>
+        <p className="text-muted mt-1 max-w-xs">
+          {slidesFailed
+            ? 'No se pudo mostrar esta presentación acá. Abrila en Google Drive.'
+            : `Este tipo de archivo (.${extOf(file.name)}) se ve mejor en Google Drive.`}
+        </p>
         <div className="flex gap-2 mt-5">
           <Button variant="primary" onClick={openInDrive}>
             <External /> Abrir en Drive
@@ -202,7 +210,7 @@ export default function Viewer({ id }: { id: string }) {
     body = (
       <ErrorBoundary resetKey={id} onClose={closeFile}>
       <Suspense fallback={<Center><Spinner /></Center>}>
-        {kind === 'pdf' && <PdfView blob={blob} />}
+        {(kind === 'pdf' || kind === 'slides') && <PdfView blob={blob} />}
         {kind === 'word' && <DocxView blob={blob} />}
         {kind === 'excel' && <SheetView blob={blob} />}
         {kind === 'image' && <ImageView blob={blob} name={file.name} thumbnail={file.thumbnailLink} onOpenDrive={openInDrive} />}

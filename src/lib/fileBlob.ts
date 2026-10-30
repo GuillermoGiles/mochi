@@ -1,8 +1,8 @@
 // Contenido de un archivo: usa la copia guardada sin conexión si está al día,
 // y si no hay internet usa la copia aunque sea vieja.
 
-import { download, type DFile } from './drive';
-import { getOffline, isNetworkError, removeOffline, saveOffline } from './offline';
+import { download, slidesPdf, type DFile } from './drive';
+import { getList, getOffline, isNetworkError, putList, removeOffline, saveOffline } from './offline';
 
 export async function fileBlob(file: DFile): Promise<Blob> {
   const saved = await getOffline(file.id);
@@ -15,6 +15,23 @@ export async function fileBlob(file: DFile): Promise<Blob> {
   } catch (e) {
     if (saved) return saved.blob;
     if (isNetworkError(e)) throw new Error('Sin conexión. Este archivo no está guardado para verlo sin internet.');
+    throw e;
+  }
+}
+
+// Las presentaciones se ven como PDF. El PDF convertido queda guardado, así la próxima vez
+// abre al instante y también sin internet.
+export async function slidesBlob(file: DFile): Promise<Blob> {
+  const key = `pdf:${file.id}`;
+  const saved = await getList<{ modifiedTime: string; blob: Blob }>(key);
+  if (saved && saved.modifiedTime === file.modifiedTime) return saved.blob;
+  try {
+    const blob = await slidesPdf(file.id);
+    await putList(key, { modifiedTime: file.modifiedTime, blob });
+    return blob;
+  } catch (e) {
+    if (saved) return saved.blob;
+    if (isNetworkError(e)) throw new Error('Sin conexión. Esta presentación todavía no se abrió con internet.');
     throw e;
   }
 }

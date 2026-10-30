@@ -37,6 +37,8 @@ export function canPreview(f: { name: string; mimeType: string }) {
   const e = extOf(f.name);
   if (k === 'word') return e === 'docx';
   if (k === 'image') return true;
+  // Drive no sabe convertir las de Keynote.
+  if (k === 'slides') return e !== 'key';
   return k === 'pdf' || k === 'excel';
 }
 

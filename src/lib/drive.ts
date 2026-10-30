@@ -165,6 +165,23 @@ export async function download(id: string) {
   return (await req(`${API}/files/${id}?alt=media`)).blob();
 }
 
+// Presentaciones (.pptx): Drive hace una copia convertida a Google Slides, la exporta a PDF y la borra.
+// La copia va a la raíz de Mi unidad para que no aparezca un instante en la carpeta de la materia.
+export async function slidesPdf(id: string) {
+  if (DEMO) return (await import('./demo')).demoBlob(id);
+  const r = await req(`${API}/files/${id}/copy?fields=id`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name: 'Mochi (temporal, se borra solo)', mimeType: 'application/vnd.google-apps.presentation', parents: ['root'] }),
+  });
+  const copy: { id: string } = await r.json();
+  try {
+    return await (await req(`${API}/files/${copy.id}/export?mimeType=application/pdf`)).blob();
+  } finally {
+    req(`${API}/files/${copy.id}`, { method: 'DELETE' }).catch(() => {});
+  }
+}
+
 export async function saveContent(id: string, content: Blob) {
   const r = await req(`${UPLOAD}/files/${id}?uploadType=media&fields=${FIELDS}`, { method: 'PATCH', body: content });
   return remember((await r.json()) as DFile);
