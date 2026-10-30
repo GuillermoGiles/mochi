@@ -96,6 +96,23 @@ button {
   cursor: pointer;
 }
 
+/* Nada se desliza de costado: la página solo se mueve para arriba y para abajo. */
+html,
+body {
+  overflow-x: clip;
+}
+
+/* En el iPhone el campo de fecha es más ancho que la pantalla si no se le saca el estilo propio. */
+input[type='date'] {
+  -webkit-appearance: none;
+  appearance: none;
+  min-width: 0;
+  max-width: 100%;
+}
+input[type='date']::-webkit-date-and-time-value {
+  text-align: left;
+}
+
 .safe-top {
   padding-top: env(safe-area-inset-top);
 }

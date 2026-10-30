@@ -50,7 +50,27 @@ export function Spinner({ className = '' }: { className?: string }) {
   );
 }
 
+// Mientras hay una ventana abierta, lo de atrás queda quieto.
+// En el iPhone no alcanza con overflow: hidden, así que la página se fija en su lugar y al cerrar vuelve donde estaba.
+let locks = 0;
+let savedY = 0;
+export function useLockScroll(active = true) {
+  useEffect(() => {
+    if (!active) return;
+    if (locks++ === 0) {
+      savedY = scrollY;
+      Object.assign(document.body.style, { position: 'fixed', top: `-${savedY}px`, left: '0', right: '0', overflow: 'hidden' });
+    }
+    return () => {
+      if (--locks > 0) return;
+      Object.assign(document.body.style, { position: '', top: '', left: '', right: '', overflow: '' });
+      scrollTo(0, savedY);
+    };
+  }, [active]);
+}
+
 export function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
+  useLockScroll();
   useEffect(() => {
     const k = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     addEventListener('keydown', k);
@@ -60,7 +80,7 @@ export function Modal({ title, onClose, children }: { title: string; onClose: ()
   return createPortal(
     <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center bg-black/40 fade-in" onMouseDown={onClose}>
       <div
-        className="w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl p-5 safe-bottom shadow-xl max-h-[90dvh] overflow-y-auto sheet-up"
+        className="w-full sm:max-w-md bg-surface rounded-t-3xl sm:rounded-3xl p-5 safe-bottom shadow-xl max-h-[90dvh] overflow-y-auto overflow-x-hidden overscroll-contain sheet-up"
         onMouseDown={(e) => e.stopPropagation()}
         role="dialog"
         aria-label={title}

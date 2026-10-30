@@ -2,12 +2,15 @@ import { Sparkles } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Route } from '../lib/router';
 import { Chat } from '../screens/AsistenteScreen';
+import { useLockScroll } from './ui';
 
 // Círculo de Mochi abajo a la derecha: abre el chat encima de cualquier pantalla.
 export default function MochiBubble({ route }: { route: Route }) {
   const [open, setOpen] = useState(false);
   // Una vez abierto queda montado (oculto al cerrarlo), así no se corta una respuesta a medias.
   const [mounted, setMounted] = useState(false);
+  // En la compu el chat es un cuadro al costado y se puede seguir usando la página: solo se bloquea en el celu.
+  useLockScroll(open && matchMedia('(max-width: 767px)').matches);
 
   useEffect(() => {
     if (!open) return;
@@ -38,11 +41,11 @@ export default function MochiBubble({ route }: { route: Route }) {
       )}
       {mounted && (
         <div className={open ? '' : 'hidden'}>
-          <div className="fixed inset-0 z-[55] bg-black/30 md:bg-transparent" onClick={() => setOpen(false)} />
+          <div className="fixed inset-0 z-[55] bg-black/30 md:bg-transparent touch-none" onClick={() => setOpen(false)} />
           <div
             role="dialog"
             aria-label="Preguntale a Mochi"
-            className="fixed z-[56] inset-x-0 bottom-0 top-[8dvh] rounded-t-3xl md:inset-auto md:right-6 md:bottom-6 md:w-[400px] md:h-[min(640px,calc(100dvh-3rem))] md:rounded-3xl bg-bg border border-line shadow-2xl flex flex-col overflow-hidden sheet-up"
+            className="fixed z-[56] inset-x-0 bottom-0 top-[8dvh] rounded-t-3xl md:inset-auto md:right-6 md:bottom-6 md:w-[400px] md:h-[min(640px,calc(100dvh-3rem))] md:rounded-3xl bg-bg border border-line shadow-2xl flex flex-col overflow-hidden overscroll-contain sheet-up"
           >
             <Chat variant="panel" onClose={() => setOpen(false)} />
           </div>

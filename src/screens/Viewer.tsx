@@ -3,7 +3,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import MoveModal from '../components/MoveModal';
 import { Back, ChevronLeft, ChevronRight, Download, External, Move, Offline, Pencil, Share, Trash } from '../components/icons';
 import { canSendToApp, sendFiles } from '../lib/send';
-import { Button, ConfirmModal, FileBadge, IconButton, Menu, PromptModal, Spinner, errorText, useToast } from '../components/ui';
+import { Button, ConfirmModal, FileBadge, IconButton, Menu, PromptModal, Spinner, errorText, useLockScroll, useToast } from '../components/ui';
 import { notifyChanged, useFacu } from '../lib/context';
 import { fileCache, getFile, rename, trash, type DFile } from '../lib/drive';
 import { dropOffline, fileBlob, keepOffline, offlineMeta, slidesBlob } from '../lib/fileBlob';
@@ -73,13 +73,7 @@ export default function Viewer({ id }: { id: string }) {
     }
   }
 
-  useEffect(() => {
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
-    return () => {
-      document.body.style.overflow = prev;
-    };
-  }, []);
+  useLockScroll();
 
   // Anterior y siguiente dentro de la carpeta (o búsqueda) desde la que se abrió.
   const siblings = getViewerList();
