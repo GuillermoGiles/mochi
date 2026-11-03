@@ -4,18 +4,8 @@ import { ChevronRight } from '../components/icons';
 import { Button, Modal, errorText } from '../components/ui';
 import { useFacu } from '../lib/context';
 import { fmtNota, fmtPromedio, updateDatos } from '../lib/datos';
-import { promedio, setEstado, type Estado } from '../lib/facu';
-import {
-  CARRERA,
-  ELECTIVAS_HORAS,
-  ELECTIVAS_NIVEL,
-  NIVELES,
-  PLAN_NOMBRE,
-  PPS,
-  missing,
-  progress,
-  type PlanRow,
-} from '../lib/plan';
+import { promedio, setCarrera, setEstado, type Estado } from '../lib/facu';
+import { NIVELES, PLANES, electivasHoras, missing, planOf, ppsKey, progress, type CarreraId, type PlanRow } from '../lib/plan';
 import { go } from '../lib/router';
 
 type Status = 'aprobada' | 'final' | 'cursando' | 'libre' | 'bloqueada';
@@ -85,7 +75,7 @@ function Ring({ value }: { value: number }) {
 // Plan de la carrera: qué aprobaste, qué te falta y qué podés cursar.
 export default function CarreraScreen() {
   const { tree } = useFacu();
-  const [editing, setEditing] = useState<PlanRow | 'pps' | null>(null);
+  const [editing, setEditing] = useState<PlanRow | 'pps' | 'carrera' | null>(null);
   const [openLevels, setOpenLevels] = useState<Record<number, boolean>>({});
   const p = progress(tree);
   const prom = promedio(tree);
@@ -116,9 +106,9 @@ export default function CarreraScreen() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 pb-12 safe-top">
       <header className="pt-6 pb-5">
         <h1 className="text-2xl font-extrabold tracking-tight">Tu carrera</h1>
-        <p className="text-sm text-muted mt-0.5">
-          {CARRERA} · {PLAN_NOMBRE}
-        </p>
+        <button onClick={() => setEditing('carrera')} className="text-sm text-muted mt-0.5 text-left hover:text-ink transition">
+          {p.plan.carrera} · {p.plan.nombre} · <span className="text-accent font-semibold">Cambiar</span>
+        </button>
       </header>
 
       <section className="bg-surface border border-line rounded-3xl p-5 flex items-center gap-5 mb-8">
@@ -132,7 +122,7 @@ export default function CarreraScreen() {
             {p.regulares > 0 && <span className="text-muted"> · {p.regulares} con final pendiente</span>}
           </p>
           <p className="text-[15px] text-muted">
-            Electivas: {p.horasElectivas} de {ELECTIVAS_HORAS} hs{prom && <> · promedio <b className="text-ink">{fmtPromedio(prom.valor)}</b></>}
+            Electivas: {p.horasElectivas} de {electivasHoras(p.plan)} hs{prom && <> · promedio <b className="text-ink">{fmtPromedio(prom.valor)}</b></>}
           </p>
           {faltan > 0 && <p className="text-sm text-muted">Te faltan {faltan} materias{p.pps ? '' : ' y la PPS'}.</p>}
         </div>
@@ -179,8 +169,8 @@ export default function CarreraScreen() {
       })}
 
       {p.electivasPorNivel.map(({ nivel, pide, hechas, completo }) => {
-        const key = 10 + nivel;
-        const all = electivas.filter((r) => r.nivel === nivel);
+        const key = 10 + (nivel ?? 0);
+        const all = electivas.filter((r) => !nivel || r.nivel === nivel);
         const mine = all.filter((r) => r.state);
         const open = !!openLevels[key];
         // Desplegado: todas las opciones. Plegado: solo las que elegiste.
@@ -193,7 +183,7 @@ export default function CarreraScreen() {
               className="w-full flex items-center gap-2 mb-1 text-left"
             >
               <ChevronRight width={16} height={16} className={`text-muted transition ${open ? 'rotate-90' : ''}`} />
-              <h2 className="text-sm font-bold text-muted flex-1">Electivas de {NIVELES[nivel - 1].toLowerCase()}</h2>
+              <h2 className="text-sm font-bold text-muted flex-1">{nivel ? `Electivas de ${NIVELES[nivel - 1].toLowerCase()}` : 'Electivas'}</h2>
               <span className={`text-sm font-bold ${completo ? 'text-success' : 'text-muted'}`}>
                 {completo ? 'Completo' : `${hechas} de ${pide} hs`}
               </span>
@@ -227,7 +217,9 @@ export default function CarreraScreen() {
         </div>
       </section>
 
-      {editing === 'pps' ? (
+      {editing === 'carrera' ? (
+        <CarreraModal onClose={() => setEditing(null)} />
+      ) : editing === 'pps' ? (
         <PpsModal done={p.pps} onClose={() => setEditing(null)} />
       ) : (
         editing && <PlanModal row={byCode.get(editing.code)!} byCode={byCode} onClose={() => setEditing(null)} />
@@ -256,6 +248,7 @@ function PlanModal({ row, byCode, onClose }: { row: PlanRow; byCode: Map<string,
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const falta = missing(row, byCode);
+  const pide = planOf(tree).electivas.find((x) => !x.nivel || x.nivel === row.nivel);
   const reqs = [
     ...row.cursar.map((c) => ({ r: byCode.get(c)!, need: 'regular' as const })),
     ...row.aprobar.map((c) => ({ r: byCode.get(c)!, need: 'aprobada' as const })),
@@ -270,8 +263,8 @@ function PlanModal({ row, byCode, onClose }: { row: PlanRow; byCode: Map<string,
       if (row.materia) await setEstado(row.materia, estado, n);
       await updateDatos(tree.rootId, (d) => {
         d.plan = d.plan ?? {};
-        if (row.materia || !estado) delete d.plan[row.code];
-        else d.plan[row.code] = n !== undefined ? { estado, nota: n } : { estado };
+        if (row.materia || !estado) delete d.plan[row.key];
+        else d.plan[row.key] = n !== undefined ? { estado, nota: n } : { estado };
       });
       await reload();
       onClose();
@@ -286,7 +279,7 @@ function PlanModal({ row, byCode, onClose }: { row: PlanRow; byCode: Map<string,
       <p className="text-sm text-muted -mt-2 mb-4">
         {row.electiva ? 'Electiva · ' : ''}
         {NIVELES[row.nivel - 1]}
-        {row.electiva && ` · ${row.horas} hs (el nivel pide ${ELECTIVAS_NIVEL[row.nivel]} hs en total)`}
+        {row.electiva && pide && ` · ${row.horas} hs (el ${pide.nivel ? 'nivel' : 'plan'} pide ${pide.pide} hs en total)`}
       </p>
 
       {reqs.length > 0 && (
@@ -360,8 +353,8 @@ function PpsModal({ done, onClose }: { done: boolean; onClose: () => void }) {
     setBusy(true);
     await updateDatos(tree.rootId, (d) => {
       d.plan = d.plan ?? {};
-      if (v) d.plan[PPS] = { estado: 'aprobada' };
-      else delete d.plan[PPS];
+      if (v) d.plan[ppsKey(tree)] = { estado: 'aprobada' };
+      else delete d.plan[ppsKey(tree)];
     }).catch(() => {});
     await reload();
     onClose();
@@ -377,6 +370,44 @@ function PpsModal({ done, onClose }: { done: boolean; onClose: () => void }) {
           Ya la hice
         </Button>
       </div>
+    </Modal>
+  );
+}
+
+function CarreraModal({ onClose }: { onClose: () => void }) {
+  const { tree, reload } = useFacu();
+  const actual = planOf(tree).id;
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  async function pick(id: CarreraId) {
+    if (id === actual) return onClose();
+    setBusy(true);
+    try {
+      await setCarrera(tree, id);
+      await reload();
+      onClose();
+    } catch (e) {
+      setError(errorText(e));
+      setBusy(false);
+    }
+  }
+  return (
+    <Modal title="¿Qué carrera estudiás?" onClose={onClose}>
+      <p className="text-muted -mt-2 mb-4">Cambia el plan de estudios y las correlativas. Tus apuntes quedan igual.</p>
+      <div className="space-y-2">
+        {PLANES.map((pl) => (
+          <button
+            key={pl.id}
+            disabled={busy}
+            onClick={() => pick(pl.id)}
+            className={`w-full text-left rounded-2xl border px-4 py-3 transition ${pl.id === actual ? 'bg-accent-soft border-accent' : 'border-line hover:bg-sunken'}`}
+          >
+            <span className="font-semibold block">{pl.carrera}</span>
+            <span className="text-sm text-muted">{pl.nombre}</span>
+          </button>
+        ))}
+      </div>
+      {error && <p className="text-danger mt-3 text-[15px]">{error}</p>}
     </Modal>
   );
 }

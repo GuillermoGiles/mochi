@@ -1,4 +1,4 @@
-// Plan de estudios 2023 de Ingeniería en Sistemas de Información (UTN FRLP), con sus correlativas.
+// Planes de estudio de las carreras de la UTN FRLP que usan Mochi, con sus correlativas.
 //   cursar: las que tenés que tener regularizadas (cursadas) para poder cursarla.
 //   aprobar: las que tenés que tener aprobadas (con final) para poder cursarla.
 // Las horas son las anuales del plan; se usan para el porcentaje de la carrera.
@@ -31,10 +31,8 @@ const e = (code: string, nivel: number, name: string, horas: number, cursar = ''
   electiva: true,
 });
 
-export const CARRERA = 'Ingeniería en Sistemas de Información';
-export const PLAN_NOMBRE = 'UTN FRLP · Plan 2023';
-
-export const PLAN: PlanItem[] = [
+// Plan 2023 de Ingeniería en Sistemas de Información.
+const SISTEMAS: PlanItem[] = [
   m('1', 1, 'Análisis Matemático I', 5, '', '', ['am1', 'analisis 1']),
   m('2', 1, 'Álgebra y Geometría Analítica', 5, '', '', ['algebra', 'aga']),
   m('3', 1, 'Física I', 5, '', '', ['fisica 1']),
@@ -93,11 +91,64 @@ export const PLAN: PlanItem[] = [
   e('E20', 5, 'Emprendedorismo', 2, '18-24'),
 ];
 
-// Horas de electivas que pide el plan en cada nivel. No hay que hacerlas todas: alcanza con sumar esas horas
-// (en 3º, 4 hs = dos electivas de 2 hs).
-export const ELECTIVAS_NIVEL: Record<number, number> = { 3: 4, 4: 6, 5: 10 };
-export const ELECTIVAS_HORAS = 20;
-export const PPS = 'PPS';
+// Para cursar las electivas de 5º de Industrial hay que tener aprobado todo el tercer nivel.
+const NIVEL_III = '17-18-19-20-21-22-23-24-25';
+
+// Plan Ord. 1114 de Ingeniería Industrial.
+const INDUSTRIAL: PlanItem[] = [
+  m('1', 1, 'Análisis Matemático I', 5, '', '', ['am1', 'analisis 1']),
+  m('2', 1, 'Química General', 5, '', '', ['quimica']),
+  m('3', 1, 'Sistemas de Representación', 3, '', '', ['dibujo', 'representacion grafica']),
+  m('4', 1, 'Informática I', 3, '', '', ['informatica 1']),
+  m('5', 1, 'Pensamiento Sistémico', 3),
+  m('6', 1, 'Física I', 5, '', '', ['fisica 1']),
+  m('7', 1, 'Álgebra y Geometría Analítica', 5, '', '', ['algebra', 'aga']),
+  m('8', 1, 'Ingeniería y Sociedad', 2),
+  m('9', 2, 'Análisis Matemático II', 5, '1-7', '', ['am2', 'analisis 2']),
+  m('10', 2, 'Administración General', 4, '4-5-7-8', '', ['administracion']),
+  m('11', 2, 'Probabilidad y Estadística', 3, '1-7', '', ['probabilidades y estadistica', 'estadistica']),
+  m('12', 2, 'Ciencia de los Materiales', 4, '2-6', '', ['materiales']),
+  m('13', 2, 'Física II', 5, '1-6', '', ['fisica 2']),
+  m('14', 2, 'Economía General', 4, '1-5-8', '', ['economia']),
+  m('15', 2, 'Informática II', 3, '4', '', ['informatica 2']),
+  m('16', 2, 'Inglés I', 2, '', '', ['ingles 1']),
+  m('17', 3, 'Costos y Presupuestos', 3, '10-14', '1-4-5-7-8', ['costos']),
+  m('18', 3, 'Estudio del Trabajo', 4, '10-11', '1-4-5-7-8'),
+  m('19', 3, 'Comercialización', 3, '10-11-14', '1-4-5-7-8'),
+  m('20', 3, 'Termodinámica y Máquinas Térmicas', 4, '2-13', '1-6', ['termodinamica']),
+  m('21', 3, 'Estática y Resistencia de Materiales', 4, '9-12', '1-2-6-7', ['resistencia de materiales', 'estabilidad']),
+  m('22', 3, 'Mecánica de los Fluidos', 3, '9', '1-6-7', ['mecanica de fluidos', 'fluidos']),
+  m('23', 3, 'Economía de la Empresa', 3, '10-14', '1-4-5-7-8'),
+  m('24', 3, 'Electrotecnia y Máquinas Eléctricas', 5, '13', '1-6', ['electrotecnia']),
+  m('25', 3, 'Análisis Numérico y Cálculo Avanzado', 2, '9', '1-7', ['analisis numerico', 'calculo avanzado']),
+  m('26', 4, 'Seguridad, Higiene e Ingeniería Ambiental', 3, '18', '10-11', ['higiene y seguridad', 'seguridad e higiene']),
+  m('27', 4, 'Investigación Operativa', 4, '9-11', '1-7', ['io']),
+  m('28', 4, 'Procesos Industriales', 5, '18-20-24', '2-10-11-13'),
+  m('29', 4, 'Mecánica y Mecanismos', 3, '9', '1-6-7', ['mecanismos']),
+  m('30', 4, 'Evaluación de Proyectos', 5, '18-19-23', '10-11-14-16'),
+  m('31', 4, 'Planificación y Control de la Producción', 4, '18', '10-11', ['pcp']),
+  m('32', 4, 'Diseño de Producto', 2, '15-19', '3-4-10-11-14', ['diseno de productos']),
+  m('33', 4, 'Inglés II', 2, '16', '', ['ingles 2']),
+  m('34', 4, 'Instalaciones Industriales', 3, '20-21-22-24', '2-9-12-13'),
+  m('35', 4, 'Legislación', 2, '', '10'),
+  m('36', 5, 'Mantenimiento', 3, '34', '20-21-24'),
+  m('37', 5, 'Manejo de Materiales y Distribución de Plantas', 3, '18-29', '9-10-11', ['distribucion de plantas', 'manejo de materiales']),
+  m('38', 5, 'Comercio Exterior', 3, '30', '18-19-23'),
+  m('39', 5, 'Relaciones Industriales', 3, '18', '10-11'),
+  m('40', 5, 'Proyecto Final', 6, '25-26-27-28-30-31', '18-19-20-21-22-23-24-33'),
+  m('41', 5, 'Ingeniería en Calidad', 3, '18', '10-11', ['calidad']),
+  m('42', 5, 'Control de Gestión', 3, '17-23', '10-14'),
+  e('E1', 4, 'Emprendedorismo', 2, '32-35', '17-19-23'),
+  e('E2', 5, 'Logística', 3, '26-27-31-34', NIVEL_III),
+  e('E3', 5, 'Simulación y Optimización', 3, '27-31', NIVEL_III, ['simulacion']),
+  e('E4', 5, 'Finanzas y Control Empresario', 3, '30-35', NIVEL_III, ['finanzas']),
+  e('E5', 5, 'Instrumentación y Automatización', 3, '28-31-34', NIVEL_III, ['automatizacion']),
+  e('E6', 5, 'Gestión Pyme', 2, '30-31-32', NIVEL_III, ['pyme']),
+  e('E7', 5, 'Gestión Ambiental', 2, '26-28-34', NIVEL_III),
+  e('E8', 5, 'Responsabilidad Social Institucional', 2, '26', NIVEL_III, ['responsabilidad social e institucional']),
+  e('E9', 5, 'Retórica Profesional', 3, '8-10-18-19', NIVEL_III, ['retorica']),
+];
+
 // La Práctica Profesional Supervisada (200 hs reloj) pesa en el porcentaje como una materia anual.
 const PPS_PESO = 5;
 
@@ -124,30 +175,70 @@ export function normName(s: string) {
     .join(' ');
 }
 
-const KEYS = new Map<string, string>();
-for (const p of PLAN) for (const n of [p.name, ...(p.alias ?? [])]) KEYS.set(normName(n), p.code);
+export type CarreraId = 'sistemas' | 'industrial';
+export type Plan = {
+  id: CarreraId;
+  carrera: string;
+  nombre: string;
+  materias: PlanItem[];
+  // Horas de electivas que pide el plan. No hay que hacerlas todas: alcanza con sumar esas horas.
+  // Sin nivel = suman las electivas de cualquier nivel.
+  electivas: { nivel?: number; pide: number }[];
+  keys: Map<string, string>;
+};
+
+const plan = (id: CarreraId, carrera: string, nombre: string, materias: PlanItem[], electivas: Plan['electivas']): Plan => {
+  const keys = new Map<string, string>();
+  for (const p of materias) for (const n of [p.name, ...(p.alias ?? [])]) keys.set(normName(n), p.code);
+  return { id, carrera, nombre, materias, electivas, keys };
+};
+
+export const PLANES: Plan[] = [
+  // En 3º, 4 hs = dos electivas de 2 hs.
+  plan('sistemas', 'Ingeniería en Sistemas de Información', 'UTN FRLP · Plan 2023', SISTEMAS, [
+    { nivel: 3, pide: 4 },
+    { nivel: 4, pide: 6 },
+    { nivel: 5, pide: 10 },
+  ]),
+  plan('industrial', 'Ingeniería Industrial', 'UTN FRLP · Ord. 1114', INDUSTRIAL, [{ pide: 10 }]),
+];
+
+// Sin carrera elegida es Sistemas: Mochi arrancó solo para Sistemas.
+export const planOf = (tree: Pick<Tree, 'carrera'>) => PLANES.find((p) => p.id === tree.carrera) ?? PLANES[0];
+export const electivasHoras = (p: Plan) => p.electivas.reduce((a, x) => a + x.pide, 0);
+
+// Las marcas se guardan por código del plan: las de Sistemas sin prefijo (como siempre), las de otra carrera con el suyo,
+// así cambiar de carrera no mezcla lo marcado.
+export function markKey(tree: Pick<Tree, 'carrera'>, code: string) {
+  const id = planOf(tree).id;
+  return id === 'sistemas' ? code : `${id}:${code}`;
+}
+export const ppsKey = (tree: Pick<Tree, 'carrera'>) => markKey(tree, 'PPS');
 
 // A qué materia del plan corresponde una carpeta de Mochi (por el nombre).
-export function planCodeOf(name: string) {
-  return KEYS.get(normName(name));
+export function planCodeOf(plan: Plan, name: string) {
+  return plan.keys.get(normName(name));
 }
 
 export type PlanState = 'aprobada' | 'final' | 'cursando' | null;
-export type PlanRow = PlanItem & { state: PlanState; nota?: number; materia?: Materia };
+// key: dónde se guarda lo que marcaste para esta materia (ver markKey).
+export type PlanRow = PlanItem & { key: string; state: PlanState; nota?: number; materia?: Materia };
 
 // El estado de cada materia del plan: lo de tus carpetas manda; si no hay carpeta, lo que marcaste acá.
 export function planRows(tree: Tree): PlanRow[] {
+  const plan = planOf(tree);
   const linked = new Map<string, Materia>();
   for (const mt of tree.materias.values()) {
-    const c = planCodeOf(mt.name);
+    const c = planCodeOf(plan, mt.name);
     // Si hay dos carpetas para la misma materia, gana la que tenga estado.
     if (c && (!linked.has(c) || (!linked.get(c)!.estado && mt.estado))) linked.set(c, mt);
   }
-  return PLAN.map((p) => {
+  return plan.materias.map((p) => {
     const mt = linked.get(p.code);
-    const mark = tree.plan[p.code];
-    if (mt?.estado) return { ...p, materia: mt, state: mt.estado, nota: mt.nota };
-    return { ...p, materia: mt, state: mark?.estado ?? null, nota: mark?.nota };
+    const key = markKey(tree, p.code);
+    const mark = tree.plan[key];
+    if (mt?.estado) return { ...p, key, materia: mt, state: mt.estado, nota: mt.nota };
+    return { ...p, key, materia: mt, state: mark?.estado ?? null, nota: mark?.nota };
   });
 }
 
@@ -170,19 +261,21 @@ export function missing(row: PlanRow, byCode: Map<string, PlanRow>) {
 
 // Porcentaje de la carrera según la carga horaria aprobada.
 export function progress(tree: Tree) {
+  const plan = planOf(tree);
   const rows = planRows(tree);
   const obligatorias = rows.filter((r) => !r.electiva);
   const electivas = rows.filter((r) => r.electiva);
-  const total = obligatorias.reduce((a, r) => a + r.horas, 0) + ELECTIVAS_HORAS + PPS_PESO;
-  const porNivel = Object.entries(ELECTIVAS_NIVEL).map(([n, pide]) => {
-    const hechas = electivas.filter((r) => r.nivel === Number(n) && done(r.state)).reduce((a, r) => a + r.horas, 0);
-    return { nivel: Number(n), pide, hechas, completo: hechas >= pide };
+  const total = obligatorias.reduce((a, r) => a + r.horas, 0) + electivasHoras(plan) + PPS_PESO;
+  const porNivel = plan.electivas.map(({ nivel, pide }) => {
+    const hechas = electivas.filter((r) => (!nivel || r.nivel === nivel) && done(r.state)).reduce((a, r) => a + r.horas, 0);
+    return { nivel, pide, hechas, completo: hechas >= pide };
   });
   // Cada nivel suma como mucho lo que pide: hacer electivas de más no adelanta la carrera.
   const horasElectivas = porNivel.reduce((a, x) => a + Math.min(x.pide, x.hechas), 0);
-  const pps = tree.plan[PPS]?.estado === 'aprobada';
+  const pps = tree.plan[ppsKey(tree)]?.estado === 'aprobada';
   const hechas = obligatorias.filter((r) => done(r.state)).reduce((a, r) => a + r.horas, 0) + horasElectivas + (pps ? PPS_PESO : 0);
   return {
+    plan,
     rows,
     porcentaje: Math.floor((hechas / total) * 100),
     aprobadas: obligatorias.filter((r) => done(r.state)).length,

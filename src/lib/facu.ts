@@ -3,8 +3,8 @@
 // Año y materia se marcan con appProperties (así no importa si se renombran).
 // Adentro de la materia, las carpetas son libres y pueden tener subcarpetas.
 
-import { loadDatos, daysUntil, type Entrega, type Exam, type Grade } from './datos';
-import { planRows, type PlanMark } from './plan';
+import { loadDatos, daysUntil, updateDatos, type Entrega, type Exam, type Grade } from './datos';
+import { planRows, type CarreraId, type PlanMark } from './plan';
 import { createFolder, escapeQuery, FOLDER, list, rename, trash, update, type DFile } from './drive';
 
 export const YEAR_NAMES = ['1er año', '2do año', '3er año', '4to año', '5to año', '6to año', '7mo año'];
@@ -58,6 +58,7 @@ export type Tree = {
   grades: Grade[];
   entregas: Entrega[];
   plan: Record<string, PlanMark>;
+  carrera?: CarreraId;
 };
 // folder vacío = archivo suelto en la materia.
 export type FileItem = DFile & { materia: Materia; folder?: Folder };
@@ -131,7 +132,7 @@ export async function loadTree(): Promise<Tree> {
   for (const f of folders.values()) f.children.sort(byName);
 
   const datos = await loadDatos(root.id);
-  return { rootId: root.id, rootLink: root.webViewLink, years, materias, folders, exams: datos.exams, grades: datos.grades ?? [], entregas: datos.entregas ?? [], plan: datos.plan ?? {} };
+  return { rootId: root.id, rootLink: root.webViewLink, years, materias, folders, exams: datos.exams, grades: datos.grades ?? [], entregas: datos.entregas ?? [], plan: datos.plan ?? {}, carrera: datos.carrera };
 }
 
 const yearName = (index: number) => YEAR_NAMES[index] ?? `Año ${index + 1}`;
@@ -150,7 +151,9 @@ export const setEstado = (m: Materia, estado: Estado | null, nota?: number) =>
     appProperties: { estado, nota: estado === 'aprobada' && nota !== undefined ? String(nota) : null },
   });
 
-export const setIcono = (m: Materia, icono: string | null) => update(m.id, { appProperties: { icono } });
+export const setCarrera = (tree: Tree, carrera: CarreraId) => updateDatos(tree.rootId, (d) => void (d.carrera = carrera));
+
+export const setIcono =(m: Materia, icono: string | null) => update(m.id, { appProperties: { icono } });
 
 export const setAprobada = (m: Materia, aprobada: boolean, nota?: number) =>
   setEstado(m, aprobada ? 'aprobada' : 'cursando', nota);

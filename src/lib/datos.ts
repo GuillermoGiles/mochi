@@ -1,7 +1,7 @@
 // Datos chicos de la app (fechas de parciales, notas y entregas) en un archivo JSON dentro de la carpeta Facultad.
 // Así se ven igual en la compu y en el celu.
 
-import type { PlanMark } from './plan';
+import type { CarreraId, PlanMark } from './plan';
 import { DEMO, createTextFile, download, list, saveContent } from './drive';
 import { getList, isNetworkError, putList } from './offline';
 
@@ -10,7 +10,8 @@ export type Grade = { id: string; materiaId: string; title: string; nota: number
 // Una tarea para entregar (TP, actividad, informe). "done" = ya entregada.
 export type Entrega = { id: string; materiaId: string; title: string; desc?: string; date: string; done: boolean };
 // plan: estado de las materias del plan que no tienen carpeta (por código del plan).
-export type Datos = { version: 1; exams: Exam[]; grades: Grade[]; entregas: Entrega[]; plan: Record<string, PlanMark> };
+// carrera: la que eligió al empezar; sin carrera es Sistemas.
+export type Datos = { version: 1; carrera?: CarreraId; exams: Exam[]; grades: Grade[]; entregas: Entrega[]; plan: Record<string, PlanMark> };
 
 const empty = (): Datos => ({ version: 1, exams: [], grades: [], entregas: [], plan: {} });
 let fileId: string | null = null;

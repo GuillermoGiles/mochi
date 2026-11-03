@@ -259,7 +259,7 @@ const TOOLS = [
 ];
 
 const INSTRUCTIONS =
-  'Mochi es la app donde el estudiante guarda los apuntes de la facultad (Ingeniería en Sistemas, UTN FRLP), ordenados por año, materia y carpetas. ' +
+  'Mochi es la app donde el estudiante guarda los apuntes de la facultad (UTN FRLP), ordenados por año, materia y carpetas. ' +
   'Para encontrar algo, empezá con ver_materias o buscar, y después leé los archivos con leer_archivo. Citá de qué archivo sale cada cosa. ' +
   'Para fechas de parciales, entregas y notas usá ver_agenda. No inventes contenido que no esté en los apuntes.';
 

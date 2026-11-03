@@ -17,7 +17,7 @@ import {
   type Tree,
 } from './facu';
 import { fileBlob } from './fileBlob';
-import { ELECTIVAS_HORAS, missing, progress } from './plan';
+import { electivasHoras, missing, progress } from './plan';
 import { baseName, extOf, kindOf } from './files';
 
 export type Part = {
@@ -259,10 +259,11 @@ export async function runTool(tree: Tree, c: Call): Promise<unknown> {
       const p = progress(tree);
       const byCode = new Map(p.rows.map((r) => [r.code, r]));
       return {
+        carrera: `${p.plan.carrera} (${p.plan.nombre})`,
         porcentaje: p.porcentaje,
         aprobadas: `${p.aprobadas} de ${p.obligatorias} obligatorias`,
-        electivas_horas: `${p.horasElectivas} de ${ELECTIVAS_HORAS}`,
-        // No hay que hacer todas las electivas: alcanza con sumar las horas que pide cada nivel.
+        electivas_horas: `${p.horasElectivas} de ${electivasHoras(p.plan)}`,
+        // No hay que hacer todas las electivas: alcanza con sumar las horas que pide cada nivel (sin nivel = todo el plan).
         electivas_por_nivel: p.electivasPorNivel.map((x) => ({ nivel: x.nivel, horas_que_pide: x.pide, horas_hechas: x.hechas })),
         pps_hecha: p.pps,
         materias: p.rows.map((r) => ({

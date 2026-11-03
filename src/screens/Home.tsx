@@ -17,6 +17,7 @@ import {
   nextYearName,
   promedio,
   recentFiles,
+  setCarrera,
   setEstado,
   upcomingExams,
   type Materia,
@@ -25,6 +26,7 @@ import {
   type FileItem,
   type Year,
 } from '../lib/facu';
+import { PLANES, type CarreraId } from '../lib/plan';
 import { go } from '../lib/router';
 
 export default function Home() {
@@ -662,6 +664,40 @@ function Onboarding() {
       setBusy(false);
     }
   }
+
+  async function pick(id: CarreraId) {
+    setBusy(true);
+    try {
+      await setCarrera(tree, id);
+      await reload();
+    } catch (e) {
+      toast(errorText(e));
+    }
+    setBusy(false);
+  }
+
+  // Primero la carrera (para el plan de estudios), después el año.
+  if (!tree.carrera)
+    return (
+      <div className="min-h-dvh max-w-lg mx-auto px-6 py-12 flex flex-col justify-center">
+        <p className="text-muted font-medium">¡Hola{user ? `, ${user.name.split(' ')[0]}` : ''}!</p>
+        <h1 className="text-3xl font-extrabold tracking-tight mt-1">¿Qué carrera estudiás?</h1>
+        <p className="text-muted mt-3">Así Mochi sabe tu plan de estudios y tus correlativas.</p>
+        {busy ? (
+          <div className="mt-10 flex items-center gap-3 text-muted">
+            <Spinner /> Preparando todo…
+          </div>
+        ) : (
+          <div className="grid gap-3 mt-8">
+            {PLANES.map((p) => (
+              <Button key={p.id} className="h-16 text-lg" onClick={() => pick(p.id)}>
+                {p.carrera}
+              </Button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
 
   return (
     <div className="min-h-dvh max-w-lg mx-auto px-6 py-12 flex flex-col justify-center">
