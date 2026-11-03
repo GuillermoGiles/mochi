@@ -1,3 +1,4 @@
+import { Analytics } from '@vercel/analytics/react';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './App';
@@ -24,5 +25,7 @@ createRoot(document.getElementById('root')!).render(
     <ErrorBoundary>
       <App />
     </ErrorBoundary>
+    {/* Cuenta las visitas (sin cookies). Se manda solo la dirección de la página, sin el link de lo que se comparte. */}
+    <Analytics beforeSend={(e) => ({ ...e, url: e.url.split(/[?#]/)[0] })} />
   </StrictMode>,
 );
