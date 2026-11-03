@@ -94,7 +94,10 @@ const SISTEMAS: PlanItem[] = [
 // Para cursar las electivas de 5º de Industrial hay que tener aprobado todo el tercer nivel.
 const NIVEL_III = '17-18-19-20-21-22-23-24-25';
 
-// Plan Ord. 1114 de Ingeniería Industrial.
+// Plan 2023 de Ingeniería Industrial (correlativas de la Ord. 1909).
+// Los códigos son los de la primera versión que tuvo Mochi (Ord. 1114), así lo que ya marcaron sigue en su lugar:
+// en el plan 2023 Proyecto Final es la 42, Calidad la 40 y Control de Gestión la 41. Las electivas no están en
+// la ordenanza (las define la facultad), así que quedan las que había.
 const INDUSTRIAL: PlanItem[] = [
   m('1', 1, 'Análisis Matemático I', 5, '', '', ['am1', 'analisis 1']),
   m('2', 1, 'Química General', 5, '', '', ['quimica']),
@@ -102,7 +105,7 @@ const INDUSTRIAL: PlanItem[] = [
   m('4', 1, 'Informática I', 3, '', '', ['informatica 1']),
   m('5', 1, 'Pensamiento Sistémico', 3),
   m('6', 1, 'Física I', 5, '', '', ['fisica 1']),
-  m('7', 1, 'Álgebra y Geometría Analítica', 5, '', '', ['algebra', 'aga']),
+  m('7', 1, 'Álgebra General y Geometría Analítica', 5, '', '', ['algebra y geometria analitica', 'algebra', 'aga']),
   m('8', 1, 'Ingeniería y Sociedad', 2),
   m('9', 2, 'Análisis Matemático II', 5, '1-7', '', ['am2', 'analisis 2']),
   m('10', 2, 'Administración General', 4, '4-5-7-8', '', ['administracion']),
@@ -113,7 +116,7 @@ const INDUSTRIAL: PlanItem[] = [
   m('15', 2, 'Informática II', 3, '4', '', ['informatica 2']),
   m('16', 2, 'Inglés I', 2, '', '', ['ingles 1']),
   m('17', 3, 'Costos y Presupuestos', 3, '10-14', '1-4-5-7-8', ['costos']),
-  m('18', 3, 'Estudio del Trabajo', 4, '10-11', '1-4-5-7-8'),
+  m('18', 3, 'Estudio del Trabajo', 4, '10-11', '1-3-4-5-7-8'),
   m('19', 3, 'Comercialización', 3, '10-11-14', '1-4-5-7-8'),
   m('20', 3, 'Termodinámica y Máquinas Térmicas', 4, '2-13', '1-6', ['termodinamica']),
   m('21', 3, 'Estática y Resistencia de Materiales', 4, '9-12', '1-2-6-7', ['resistencia de materiales', 'estabilidad']),
@@ -122,22 +125,22 @@ const INDUSTRIAL: PlanItem[] = [
   m('24', 3, 'Electrotecnia y Máquinas Eléctricas', 5, '13', '1-6', ['electrotecnia']),
   m('25', 3, 'Análisis Numérico y Cálculo Avanzado', 2, '9', '1-7', ['analisis numerico', 'calculo avanzado']),
   m('26', 4, 'Seguridad, Higiene e Ingeniería Ambiental', 3, '18', '10-11', ['higiene y seguridad', 'seguridad e higiene']),
-  m('27', 4, 'Investigación Operativa', 4, '9-11', '1-7', ['io']),
-  m('28', 4, 'Procesos Industriales', 5, '18-20-24', '2-10-11-13'),
+  m('27', 4, 'Investigación Operativa', 4, '9-11-25', '1-7', ['io']),
+  m('28', 4, 'Procesos Industriales', 5, '18-20-24', '2-10-12-13'),
   m('29', 4, 'Mecánica y Mecanismos', 3, '9', '1-6-7', ['mecanismos']),
-  m('30', 4, 'Evaluación de Proyectos', 5, '18-19-23', '10-11-14-16'),
+  m('30', 4, 'Evaluación de Proyectos', 5, '17-18-19-23', '10-11-14-16'),
   m('31', 4, 'Planificación y Control de la Producción', 4, '18', '10-11', ['pcp']),
-  m('32', 4, 'Diseño de Producto', 2, '15-19', '3-4-10-11-14', ['diseno de productos']),
+  m('32', 4, 'Diseño del Producto', 2, '15-19', '3-4-10-11-14', ['diseno de producto', 'diseno de productos']),
   m('33', 4, 'Inglés II', 2, '16', '', ['ingles 2']),
   m('34', 4, 'Instalaciones Industriales', 3, '20-21-22-24', '2-9-12-13'),
   m('35', 4, 'Legislación', 2, '', '10'),
   m('36', 5, 'Mantenimiento', 3, '34', '20-21-24'),
-  m('37', 5, 'Manejo de Materiales y Distribución de Plantas', 3, '18-29', '9-10-11', ['distribucion de plantas', 'manejo de materiales']),
+  m('37', 5, 'Manejo de Materiales y Distribución de Plantas', 3, '18-29', '9-10-21', ['distribucion de plantas', 'manejo de materiales']),
   m('38', 5, 'Comercio Exterior', 3, '30', '18-19-23'),
   m('39', 5, 'Relaciones Industriales', 3, '18', '10-11'),
-  m('40', 5, 'Proyecto Final', 6, '25-26-27-28-30-31', '18-19-20-21-22-23-24-33'),
   m('41', 5, 'Ingeniería en Calidad', 3, '18', '10-11', ['calidad']),
   m('42', 5, 'Control de Gestión', 3, '17-23', '10-14'),
+  m('40', 5, 'Proyecto Final', 6, '25-26-27-28-30-31', '18-19-20-21-22-23-24-33'),
   e('E1', 4, 'Emprendedorismo', 2, '32-35', '17-19-23'),
   e('E2', 5, 'Logística', 3, '26-27-31-34', NIVEL_III),
   e('E3', 5, 'Simulación y Optimización', 3, '27-31', NIVEL_III, ['simulacion']),
@@ -200,7 +203,7 @@ export const PLANES: Plan[] = [
     { nivel: 4, pide: 6 },
     { nivel: 5, pide: 10 },
   ]),
-  plan('industrial', 'Ingeniería Industrial', 'UTN FRLP · Ord. 1114', INDUSTRIAL, [{ pide: 10 }]),
+  plan('industrial', 'Ingeniería Industrial', 'UTN FRLP · Plan 2023', INDUSTRIAL, [{ pide: 10 }]),
 ];
 
 // Sin carrera elegida es Sistemas: Mochi arrancó solo para Sistemas.
