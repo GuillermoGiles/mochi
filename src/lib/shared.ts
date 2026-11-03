@@ -67,4 +67,6 @@ export async function sharedDownload(id: string) {
   return (await get(`${API}/files/${id}?alt=media`)).blob();
 }
 
-export const shareLink = (folderId: string) => `${location.origin}/#/importar/${folderId}`;
+// WhatsApp ignora lo que va después del # y guarda la vista previa por link: con "?c=" cada link es distinto
+// y siempre muestra el logo, en vez de una vista previa vieja de la página principal.
+export const shareLink = (folderId: string) => `${location.origin}/?c=${folderId}#/importar/${folderId}`;

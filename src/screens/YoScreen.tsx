@@ -21,11 +21,13 @@ export default function YoScreen() {
   const p = promedio(tree);
 
   async function invite() {
-    const data = { title: 'Mochi', text: 'Organizá tus apuntes de la facu con Mochi', url: location.origin };
+    // "?invitar": WhatsApp tiene guardada una vista previa vieja (sin logo) de la página principal.
+    const url = `${location.origin}/?invitar`;
+    const data = { title: 'Mochi', text: 'Organizá tus apuntes de la facu con Mochi', url };
     try {
       if (navigator.share) await navigator.share(data);
       else {
-        await navigator.clipboard.writeText(location.origin);
+        await navigator.clipboard.writeText(url);
         toast('Link copiado. Pasáselo a tus compañeros.');
       }
     } catch {}
