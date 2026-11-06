@@ -85,12 +85,22 @@ function remember<T extends DFile | DFile[]>(f: T): T {
 
 export const DEMO = import.meta.env.DEV && new URLSearchParams(location.search).has('demo');
 
-export async function list(q: string, opts: { orderBy?: string; pageSize?: number; firstPageOnly?: boolean } = {}) {
+// Cuántas veces se crearon o cambiaron cosas desde la app. Si no cambió, las carpetas que ya se
+// trajeron siguen sirviendo y no hace falta pedirlas de nuevo.
+export let folderChanges = 0;
+
+type ListOpts = { orderBy?: string; pageSize?: number; firstPageOnly?: boolean };
+const listKey = (q: string, opts: ListOpts) => JSON.stringify([q, opts.orderBy ?? '', opts.pageSize ?? 0]);
+
+// Lo último que se trajo para esa búsqueda (guardado en el celu), sin ir a internet.
+export const cachedList = (q: string, opts: ListOpts = {}) => getList<DFile[]>(listKey(q, opts));
+
+export async function list(q: string, opts: ListOpts = {}) {
   if (DEMO) {
     currentUser = { email: 'demo@demo', name: 'Demo' };
     return remember((await import('./demo')).demoList(q));
   }
-  const key = JSON.stringify([q, opts.orderBy ?? '', opts.pageSize ?? 0]);
+  const key = listKey(q, opts);
   try {
     const out: DFile[] = [];
     let pageToken: string | undefined;
@@ -132,6 +142,7 @@ export async function getFile(id: string) {
 }
 
 export async function createFolder(name: string, parent: string | undefined, appProperties: Record<string, string>) {
+  folderChanges++;
   if (DEMO) return remember((await import('./demo')).demoCreateFolder(name, parent, appProperties));
   const r = await req(`${API}/files?fields=${FIELDS}`, {
     method: 'POST',
@@ -145,6 +156,7 @@ export async function update(
   id: string,
   body: Partial<Omit<DFile, 'appProperties'>> & { trashed?: boolean; appProperties?: Record<string, string | null> },
   params: Record<string, string> = {}) {
+  folderChanges++;
   if (DEMO) return remember((await import('./demo')).demoUpdate(id, body as never, params));
   const p = new URLSearchParams({ fields: FIELDS, ...params });
   const r = await req(`${API}/files/${id}?${p}`, {

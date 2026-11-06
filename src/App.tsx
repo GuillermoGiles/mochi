@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button, Spinner, ToastProvider, errorText } from './components/ui';
 import { FacuContext } from './lib/context';
 import { Offline } from './components/icons';
 import { AuthError, currentUser, offlineMode } from './lib/drive';
-import { loadTree, type Tree } from './lib/facu';
+import { cachedTree, loadTree, type Tree } from './lib/facu';
 import { useRoute } from './lib/router';
 import Shell from './components/Shell';
 import MochiBubble from './components/MochiBubble';
@@ -50,20 +50,46 @@ export default function App() {
   const [error, setError] = useState('');
   const route = useRoute();
 
-  const reload = useCallback(async () => {
+  const fresh = useRef(false);
+  const lastFull = useRef(0);
+
+  const load = useCallback(async (full: boolean) => {
+    if (full) lastFull.current = Date.now();
     try {
-      setTree(await loadTree());
+      const t = await loadTree({ full });
+      fresh.current = true;
+      setTree(t);
       setStatus('ready');
     } catch (e) {
       if (e instanceof AuthError) return setStatus('login');
       setError(errorText(e));
-      setStatus('error');
+      // Si ya se están mostrando los apuntes, se siguen mostrando.
+      setStatus((s) => (s === 'ready' ? s : 'error'));
     }
   }, []);
+  // Después de un cambio hecho en la app: solo se vuelve a pedir lo que cambió.
+  const reload = useCallback(() => load(false), [load]);
+  const reloadAll = useCallback(() => load(true), [load]);
 
   useEffect(() => {
-    reload();
-  }, [reload]);
+    // Se muestra al instante lo de la última vez, mientras se trae lo nuevo de Drive.
+    if (currentUser)
+      cachedTree().then((t) => {
+        if (!t || fresh.current) return;
+        setTree(t);
+        setStatus((s) => (s === 'loading' ? 'ready' : s));
+      });
+    reloadAll();
+  }, [reloadAll]);
+
+  // Al volver a la app (por ejemplo, después de usarla en la compu), se trae lo nuevo.
+  useEffect(() => {
+    const onShow = () => {
+      if (document.visibilityState === 'visible' && status === 'ready' && Date.now() - lastFull.current > 60_000) reloadAll();
+    };
+    document.addEventListener('visibilitychange', onShow);
+    return () => document.removeEventListener('visibilitychange', onShow);
+  }, [status, reloadAll]);
 
   // Después de entrar, se abre el link compartido que se estaba por recibir.
   useEffect(() => {
@@ -99,7 +125,7 @@ export default function App() {
         <div className="max-w-sm">
           <p className="text-lg font-bold mb-2">No pudimos cargar tus apuntes</p>
           <p className="text-muted mb-6 break-words">{error}</p>
-          <Button variant="primary" onClick={() => (setStatus('loading'), reload())}>
+          <Button variant="primary" onClick={() => (setStatus('loading'), reloadAll())}>
             Reintentar
           </Button>
         </div>
@@ -132,7 +158,7 @@ export default function App() {
         </Shell>
         {route.file && <Viewer key={route.file} id={route.file} />}
         <MochiBubble route={route} />
-        <OfflineBanner onBack={reload} />
+        <OfflineBanner onBack={reloadAll} />
       </ToastProvider>
     </FacuContext.Provider>
   );

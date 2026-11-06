@@ -14,7 +14,25 @@ export type Entrega = { id: string; materiaId: string; title: string; desc?: str
 export type Datos = { version: 1; carrera?: CarreraId; exams: Exam[]; grades: Grade[]; entregas: Entrega[]; plan: Record<string, PlanMark> };
 
 const empty = (): Datos => ({ version: 1, exams: [], grades: [], entregas: [], plan: {} });
-let fileId: string | null = null;
+// Dónde está el archivo, guardado para no tener que buscarlo cada vez.
+export const DATOS_ID = 'mochi:datos';
+let fileId: string | null = (() => {
+  try {
+    return localStorage.getItem(DATOS_ID);
+  } catch {
+    return null;
+  }
+})();
+function setFileId(id: string | null) {
+  fileId = id;
+  try {
+    if (id) localStorage.setItem(DATOS_ID, id);
+    else localStorage.removeItem(DATOS_ID);
+  } catch {}
+}
+// Lo último leído o guardado. Las fechas solo cambian desde la app, así que después de guardar
+// no hace falta volver a descargarlas.
+let latest: { rootId: string; d: Datos } | null = null;
 let demoDatos: Datos | null = null;
 
 function demoSample(): Datos {
@@ -37,29 +55,57 @@ function demoSample(): Datos {
   };
 }
 
+async function find(rootId: string) {
+  const f = (await list(`'${rootId}' in parents and appProperties has { key='facu' and value='datos' } and trashed=false`))[0];
+  setFileId(f?.id ?? null);
+  return f?.id ?? null;
+}
+
 async function read(rootId: string): Promise<Datos> {
   if (DEMO) return (demoDatos ??= demoSample());
-  const f = (await list(`'${rootId}' in parents and appProperties has { key='facu' and value='datos' } and trashed=false`))[0];
-  if (!f) return empty();
-  fileId = f.id;
   let text: string;
   try {
-    text = await (await download(f.id)).text();
+    let id = fileId ?? (await find(rootId));
+    if (!id) return remember(rootId, empty());
+    try {
+      text = await (await download(id)).text();
+    } catch (e) {
+      // El archivo guardado ya no está (u otra cuenta): se busca de nuevo.
+      if (isNetworkError(e) || !fileId) throw e;
+      id = await find(rootId);
+      if (!id) return remember(rootId, empty());
+      text = await (await download(id)).text();
+    }
   } catch (e) {
     // Sin internet: la última copia que se leyó.
-    if (isNetworkError(e)) return (await getList<Datos>('datos')) ?? empty();
+    if (isNetworkError(e)) return (await cachedDatos()) ?? empty();
     throw e;
   }
   try {
     const d: Datos = { ...empty(), ...JSON.parse(text) };
     putList('datos', d);
-    return d;
+    return remember(rootId, d);
   } catch {
     return empty();
   }
 }
 
-export const loadDatos = read;
+function remember(rootId: string, d: Datos) {
+  latest = { rootId, d };
+  return d;
+}
+
+// La copia guardada en el celu, para mostrar algo al instante al abrir.
+export async function cachedDatos(): Promise<Datos | undefined> {
+  const d = await getList<Datos>('datos');
+  return d && { ...empty(), ...d };
+}
+
+// reuse: si ya se leyó, usa eso en vez de descargarlo de nuevo.
+export async function loadDatos(rootId: string, reuse = false) {
+  if (reuse && latest?.rootId === rootId) return latest.d;
+  return read(rootId);
+}
 
 // Lee la última versión antes de guardar, para no pisar cambios hechos desde otro dispositivo.
 export async function updateDatos(rootId: string, change: (d: Datos) => void) {
@@ -68,7 +114,9 @@ export async function updateDatos(rootId: string, change: (d: Datos) => void) {
   if (DEMO) return;
   const text = JSON.stringify(d, null, 1);
   if (fileId) await saveContent(fileId, new Blob([text], { type: 'application/json' }));
-  else fileId = (await createTextFile('Mochi - fechas.json', rootId, text, 'application/json', { facu: 'datos' })).id;
+  else setFileId((await createTextFile('Mochi - fechas.json', rootId, text, 'application/json', { facu: 'datos' })).id);
+  putList('datos', d);
+  remember(rootId, d);
 }
 
 export function toISO(d: Date) {

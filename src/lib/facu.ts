@@ -3,9 +3,9 @@
 // Año y materia se marcan con appProperties (así no importa si se renombran).
 // Adentro de la materia, las carpetas son libres y pueden tener subcarpetas.
 
-import { loadDatos, daysUntil, updateDatos, type Entrega, type Exam, type Grade } from './datos';
+import { cachedDatos, loadDatos, daysUntil, updateDatos, type Datos, type Entrega, type Exam, type Grade } from './datos';
 import { planRows, type CarreraId, type PlanMark } from './plan';
-import { createFolder, escapeQuery, FOLDER, list, rename, trash, update, type DFile } from './drive';
+import { cachedList, createFolder, DEMO, escapeQuery, FOLDER, folderChanges, list, rename, trash, update, type DFile } from './drive';
 
 export const YEAR_NAMES = ['1er año', '2do año', '3er año', '4to año', '5to año', '6to año', '7mo año'];
 export const COLORS = ['#4c6ef5', '#12b886', '#f59f00', '#e64980', '#7950f2', '#15aabf', '#fa5252', '#74b816'];
@@ -65,9 +65,31 @@ export type FileItem = DFile & { materia: Materia; folder?: Folder };
 
 const byName = <T extends { name: string }>(a: T, b: T) => a.name.localeCompare(b.name, 'es', { numeric: true });
 
-export async function loadTree(): Promise<Tree> {
-  const all = await list(`mimeType='${FOLDER}' and trashed=false`);
-  const root = all.find((f) => f.appProperties?.facu === 'root') ?? (await createFolder('Facultad', undefined, { facu: 'root' }));
+const FOLDERS_Q = `mimeType='${FOLDER}' and trashed=false`;
+const isRoot = (f: DFile) => f.appProperties?.facu === 'root';
+let folderCache: { all: DFile[]; version: number } | null = null;
+
+// full: trae todo de nuevo de Drive (al abrir la app o al volver a ella, por si cambió algo en otro
+// dispositivo). Si no, reutiliza lo que no se tocó desde la app: después de cargar una fecha o una
+// nota no se vuelven a pedir las carpetas, y después de mover una carpeta no se vuelven a pedir las fechas.
+export async function loadTree({ full = true } = {}): Promise<Tree> {
+  const version = folderChanges;
+  const all = !full && folderCache?.version === version ? folderCache.all : await list(FOLDERS_Q);
+  folderCache = { all, version };
+  const root = all.find(isRoot) ?? (await createFolder('Facultad', undefined, { facu: 'root' }));
+  return buildTree(all, root, await loadDatos(root.id, !full));
+}
+
+// Lo último que se vio, guardado en el celu, para mostrarlo al instante mientras llega lo nuevo.
+export async function cachedTree(): Promise<Tree | null> {
+  if (DEMO) return null;
+  const [all, datos] = await Promise.all([cachedList(FOLDERS_Q), cachedDatos()]);
+  const root = all?.find(isRoot);
+  if (!all || !root) return null;
+  return buildTree(all, root, datos ?? { version: 1, exams: [], grades: [], entregas: [], plan: {} });
+}
+
+function buildTree(all: DFile[], root: DFile, datos: Datos): Tree {
 
   const years: Year[] = all
     .filter((f) => f.appProperties?.facu === 'year' && f.parents?.includes(root.id))
@@ -131,7 +153,6 @@ export async function loadTree(): Promise<Tree> {
   for (const m of materias.values()) m.folders.sort(byName);
   for (const f of folders.values()) f.children.sort(byName);
 
-  const datos = await loadDatos(root.id);
   return { rootId: root.id, rootLink: root.webViewLink, years, materias, folders, exams: datos.exams, grades: datos.grades ?? [], entregas: datos.entregas ?? [], plan: datos.plan ?? {}, carrera: datos.carrera };
 }
 

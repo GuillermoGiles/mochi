@@ -3,7 +3,8 @@ import { ChevronRight, Folder, Logout, Share, Sun } from '../components/icons';
 import { MateriaBadge } from '../components/MateriaCover';
 import { useToast } from '../components/ui';
 import { useFacu } from '../lib/context';
-import { fmtNota, fmtPromedio } from '../lib/datos';
+import { DATOS_ID, fmtNota, fmtPromedio } from '../lib/datos';
+import { clearLists } from '../lib/offline';
 import { promedio } from '../lib/facu';
 import { go } from '../lib/router';
 import { getTheme, setTheme, type Theme } from '../lib/theme';
@@ -31,6 +32,16 @@ export default function YoScreen() {
         toast('Link copiado. Pasáselo a tus compañeros.');
       }
     } catch {}
+  }
+
+  // Borra lo guardado en el celu (carpetas, fechas y quién sos) antes de salir.
+  async function logout() {
+    await clearLists();
+    try {
+      localStorage.removeItem('mochi:user');
+      localStorage.removeItem(DATOS_ID);
+    } catch {}
+    location.href = '/api/logout';
   }
 
   return (
@@ -104,7 +115,7 @@ export default function YoScreen() {
         <Row icon={<Share />} label="Invitar a un compañero" onClick={invite} />
         {tree.rootLink && <Row icon={<Folder />} label="Ver mis apuntes en Google Drive" href={tree.rootLink} />}
         <Row icon={<ChevronRight />} label="Política de privacidad" href="/privacidad.html" />
-        <Row icon={<Logout />} label="Cerrar sesión" href="/api/logout" danger />
+        <Row icon={<Logout />} label="Cerrar sesión" onClick={logout} danger />
       </section>
     </div>
   );

@@ -36,7 +36,10 @@ const safe = async <T>(p: () => Promise<T>, fallback: T) => {
   }
 };
 
-export const putList = (key: string, value: unknown) => safe(() => run('lists', 'readwrite', (s) => s.put(value, key)), undefined);
+// Al cerrar sesión se borra lo guardado de las carpetas, para que otra cuenta no vea lo anterior al abrir.
+export const clearLists = () => safe(() => run('lists', 'readwrite', (s) => s.clear()), undefined);
+
+export const putList =(key: string, value: unknown) => safe(() => run('lists', 'readwrite', (s) => s.put(value, key)), undefined);
 export const getList = <T>(key: string) => safe(() => run<T | undefined>('lists', 'readonly', (s) => s.get(key)), undefined);
 
 export const saveOffline = (f: Saved) => safe(() => run('files', 'readwrite', (s) => s.put(f, f.id)), undefined);
