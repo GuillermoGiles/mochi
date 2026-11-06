@@ -65,6 +65,8 @@ export async function ask(contents: Content[], contexto: string) {
   if (r.status === 429)
     throw new IaError(`Llegaste al límite de ${j.limite ?? ''} preguntas de hoy. Mañana se renueva, o cargá tu propia clave de Gemini en Vos.`, 'limite');
   if (r.status === 401) throw new IaError('Se cerró tu sesión. Volvé a entrar.', 'sesion');
+  if (r.status === 400 || r.status === 413)
+    throw new IaError('No se pudo mandar la pregunta (puede ser un archivo muy largo). Recargá la página y probá de nuevo.', 'gemini');
   if (!r.ok) throw new IaError('Gemini no respondió. Puede estar saturado: probá de nuevo en un rato.', 'gemini');
   return j as { content: Content | null; restantes: number | null; limite: number };
 }

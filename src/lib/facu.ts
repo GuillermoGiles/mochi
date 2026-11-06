@@ -249,14 +249,26 @@ export function itemOf(tree: Tree, f: DFile): FileItem | null {
 
 const notFolder = `mimeType!='${FOLDER}' and trashed=false`;
 
-export async function materiaFiles(tree: Tree, m: Materia) {
+// Drive no acepta búsquedas muy largas: se piden de a 40 carpetas.
+function materiaQueries(m: Materia) {
   const ids = [m.id, ...materiaFolders(m).map((f) => f.id)];
-  const chunks: string[][] = [];
-  for (let i = 0; i < ids.length; i += 40) chunks.push(ids.slice(i, i + 40));
-  const parts = await Promise.all(
-    chunks.map((c) => list(`(${c.map((id) => `'${id}' in parents`).join(' or ')}) and ${notFolder}`)),
-  );
+  const out: string[] = [];
+  for (let i = 0; i < ids.length; i += 40)
+    out.push(`(${ids.slice(i, i + 40).map((id) => `'${id}' in parents`).join(' or ')}) and ${notFolder}`);
+  return out;
+}
+
+export async function materiaFiles(tree: Tree, m: Materia) {
+  const parts = await Promise.all(materiaQueries(m).map((q) => list(q)));
   return toItems(tree, parts.flat());
+}
+
+// Los archivos de la materia como se vieron la última vez, para mostrarlos al instante.
+// null si falta algo (por ejemplo, una carpeta nueva que todavía no se abrió).
+export async function cachedMateriaFiles(tree: Tree, m: Materia) {
+  if (DEMO) return null;
+  const parts = await Promise.all(materiaQueries(m).map((q) => cachedList(q)));
+  return parts.every(Boolean) ? toItems(tree, parts.flat() as DFile[]) : null;
 }
 
 // Busca adentro de los PDF y Word de una sola materia (Drive indexa el texto).
@@ -275,8 +287,15 @@ export async function searchInMateria(tree: Tree, m: Materia, text: string) {
   return toItems(tree, parts.flat());
 }
 
+const RECENT = { orderBy: 'modifiedTime desc', pageSize: 12, firstPageOnly: true };
+
 export async function recentFiles(tree: Tree) {
-  return toItems(tree, await list(notFolder, { orderBy: 'modifiedTime desc', pageSize: 12, firstPageOnly: true })).slice(0, 6);
+  return toItems(tree, await list(notFolder, RECENT)).slice(0, 6);
+}
+
+export async function cachedRecentFiles(tree: Tree) {
+  const saved = DEMO ? null : await cachedList(notFolder, RECENT);
+  return saved ? toItems(tree, saved).slice(0, 6) : null;
 }
 
 // Busca en el nombre y también dentro del contenido (PDF, Word, etc.).

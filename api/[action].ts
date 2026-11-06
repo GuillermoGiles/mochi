@@ -99,7 +99,9 @@ export async function GET(req: Request) {
 // (porque ahí tiene acceso a Drive); acá solo se habla con Gemini.
 
 const IA_LIMIT = 20; // preguntas por día y por persona con la clave compartida
-const IA_COOKIE = 'mochi_ia';
+// La cuenta se guarda adentro de la sesión: para reiniciarla habría que volver a entrar con Google.
+// Antes iba en una cookie aparte (que se podía borrar sola); se borra si todavía está.
+const OLD_IA_COOKIE = 'mochi_ia';
 // Se prueban en orden: si uno está saturado o sin cupo, se usa el siguiente.
 const IA_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'];
 
@@ -277,7 +279,13 @@ export async function POST(req: Request) {
 
   const raw = await req.text();
   if (raw.length > 2_000_000) return respond(413, { error: 'muy_largo' });
-  const body = JSON.parse(raw) as { contents: { role: string; parts: { text?: string }[] }[]; contexto?: string };
+  let body: { contents: { role: string; parts: { text?: string }[] }[]; contexto?: string };
+  try {
+    body = JSON.parse(raw);
+    if (!Array.isArray(body?.contents)) throw new Error();
+  } catch {
+    return respond(400, { error: 'pedido_invalido' });
+  }
   // Solo cuenta como pregunta nueva cuando lo último es un mensaje escrito por el usuario
   // (no los pasos intermedios en los que la app le devuelve resultados de herramientas).
   const lastMsg = body.contents.at(-1);
@@ -286,8 +294,7 @@ export async function POST(req: Request) {
   // Con clave propia no hay límite; con la compartida, IA_LIMIT por día.
   const ownKey = req.headers.get('x-gemini-key')?.trim();
   const today = new Date().toLocaleDateString('sv-SE', { timeZone: 'America/Argentina/Buenos_Aires' });
-  const prev = (await unseal(readCookie(req, IA_COOKIE))) as unknown as IaUse | null;
-  const use: IaUse = prev && prev.d === today ? prev : { d: today, n: 0 };
+  const use: IaUse = session.ia?.d === today ? { ...session.ia } : { d: today, n: 0 };
   if (!ownKey && isNew && use.n >= IA_LIMIT) return respond(429, { error: 'limite', restantes: 0, limite: IA_LIMIT });
 
   const key = ownKey || env('GEMINI_API_KEY');
@@ -305,14 +312,16 @@ export async function POST(req: Request) {
       headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
       body: payload,
     });
-    const data = await r.json();
+    const data = await r.json().catch(() => ({}));
     if (r.ok) {
       if (!ownKey && isNew) use.n++;
       const restantes = ownKey ? null : IA_LIMIT - use.n;
+      const cookies = readCookie(req, OLD_IA_COOKIE) ? [cookie(OLD_IA_COOKIE, '', 0, secure)] : [];
+      if (!ownKey) cookies.push(cookie(SESSION, await seal({ ...session, ia: use }), MAX_AGE, secure));
       return respond(
         200,
         { content: data.candidates?.[0]?.content ?? null, finish: data.candidates?.[0]?.finishReason, restantes, limite: IA_LIMIT },
-        ownKey ? [] : [cookie(IA_COOKIE, await seal(use as unknown as Session), 2 * 24 * 60 * 60, secure)],
+        cookies,
       );
     }
     last = `${r.status} ${data.error?.status ?? ''}`;

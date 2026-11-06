@@ -5,7 +5,8 @@ export const SESSION = 'facu_session';
 export const STATE = 'facu_state';
 export const MAX_AGE = 400 * 24 * 60 * 60;
 
-export type Session = { rt: string; user: { email: string; name: string; picture?: string } };
+// ia: cuántas preguntas a la IA hizo hoy con la clave compartida (d = día, n = cantidad).
+export type Session = { rt: string; user: { email: string; name: string; picture?: string }; ia?: { d: string; n: number } };
 
 const enc = new TextEncoder();
 const dec = new TextDecoder();

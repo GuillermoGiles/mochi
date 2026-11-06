@@ -66,7 +66,6 @@ export default defineConfig(({ mode }) => {
         },
         workbox: {
           // La app y los visores de PDF, Word, Excel e imágenes quedan guardados para abrir sin internet.
-          // El editor de Excalidraw (muy pesado) se guarda recién la primera vez que se usa.
           globPatterns: [
             'index.html',
             'assets/index-*.{js,css}',

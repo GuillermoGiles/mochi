@@ -28,6 +28,7 @@ import { list, move, trash } from '../lib/drive';
 import {
   addFolder,
   folderPath,
+  cachedMateriaFiles,
   materiaFiles,
   renameFolder,
   searchInMateria,
@@ -140,18 +141,25 @@ export default function MateriaScreen({ id, folderId }: { id: string; folderId?:
   const load = useCallback(async () => {
     if (!m) return;
     offlineIds().then(setOffline);
+    // Mientras llega lo de Drive, se muestra lo de la última vez (solo si todavía no hay nada en pantalla).
+    let fresh = false;
+    cachedMateriaFiles(tree, m).then((saved) => saved && !fresh && setFiles((f) => f ?? saved));
     try {
-      setFiles(await materiaFiles(tree, m));
+      const r = await materiaFiles(tree, m);
+      fresh = true;
+      setFiles(r);
     } catch (e) {
+      fresh = true;
       toast(errorText(e));
-      setFiles([]);
+      setFiles((f) => f ?? []);
     }
   }, [tree, m, toast]);
 
   useEffect(() => {
     load();
-    addEventListener(CHANGED, load);
-    return () => removeEventListener(CHANGED, load);
+    const onChange = () => load();
+    addEventListener(CHANGED, onChange);
+    return () => removeEventListener(CHANGED, onChange);
   }, [load]);
 
   // Al cambiar de carpeta se limpia la selección y vuelve arriba.

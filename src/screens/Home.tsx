@@ -16,6 +16,7 @@ import {
   addYear,
   nextYearName,
   promedio,
+  cachedRecentFiles,
   recentFiles,
   setCarrera,
   setEstado,
@@ -50,7 +51,13 @@ export default function Home() {
   }
 
   useEffect(() => {
-    const load = () => recentFiles(tree).then(setRecent).catch(() => {});
+    // Primero lo de la última vez (si todavía no hay nada), y después lo nuevo de Drive.
+    let fresh = false;
+    cachedRecentFiles(tree).then((saved) => saved && !fresh && setRecent((r) => (r.length ? r : saved)));
+    const load = () =>
+      recentFiles(tree)
+        .then((r) => ((fresh = true), setRecent(r)))
+        .catch(() => {});
     load();
     addEventListener(CHANGED, load);
     return () => removeEventListener(CHANGED, load);
