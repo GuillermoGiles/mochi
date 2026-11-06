@@ -16,6 +16,7 @@ import {
   unseal,
 } from './_shared.js';
 import { authorize, corsPreflight, extToken, googleCallback, mcp, metadata, register, token } from './_mcp.js';
+import { avisos, clave, cron } from './_avisos.js';
 
 // Pedidos previos de navegadores (CORS) para el conector de Claude.
 export const OPTIONS = () => corsPreflight();
@@ -90,6 +91,10 @@ export async function GET(req: Request) {
   }
 
   if (action === 'logout') return respond(302, null, [cookie(SESSION, '', 0, secure)], '/');
+
+  // Avisos de parciales y entregas.
+  if (action === 'avisos-clave') return clave();
+  if (action === 'cron-avisos') return cron(req);
 
   return respond(404, { error: 'no_existe' });
 }
@@ -272,6 +277,7 @@ export async function POST(req: Request) {
   if (action === 'register') return register(req);
   if (action === 'oauth-token') return token(req);
   if (action === 'ext-token') return extToken(req);
+  if (action === 'avisos') return avisos(req);
   if (action !== 'ia') return respond(404, { error: 'no_existe' });
 
   const session = await unseal(readCookie(req, SESSION));

@@ -77,6 +77,8 @@ export default defineConfig(({ mode }) => {
             '*.{svg,png,ico}',
           ],
           maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
+          // Recibe los avisos de parciales y entregas.
+          importScripts: ['push-sw.js'],
           navigateFallbackDenylist: [/^\/api\//, /^\/privacidad/],
           runtimeCaching: [
             {

@@ -1,7 +1,8 @@
 import { useState, type ReactNode } from 'react';
 import { ChevronRight, Folder, Logout, Share, Sun } from '../components/icons';
 import { MateriaBadge } from '../components/MateriaCover';
-import { useToast } from '../components/ui';
+import { errorText, useToast } from '../components/ui';
+import { activarAvisos, avisosActivos, desactivarAvisos } from '../lib/avisos';
 import { useFacu } from '../lib/context';
 import { DATOS_ID, fmtNota, fmtPromedio } from '../lib/datos';
 import { clearLists } from '../lib/offline';
@@ -36,6 +37,8 @@ export default function YoScreen() {
 
   // Borra lo guardado en el celu (carpetas, fechas y quién sos) antes de salir.
   async function logout() {
+    // Si no, este dispositivo seguiría recibiendo avisos de esta cuenta.
+    await desactivarAvisos().catch(() => {});
     await clearLists();
     try {
       localStorage.removeItem('mochi:user');
@@ -82,6 +85,8 @@ export default function YoScreen() {
         </section>
       )}
 
+      <Avisos />
+
       <section className="mb-8">
         <h2 className="text-sm font-bold text-muted mb-2">Apariencia</h2>
         <div className="bg-surface border border-line rounded-3xl p-2 flex gap-1">
@@ -118,6 +123,54 @@ export default function YoScreen() {
         <Row icon={<Logout />} label="Cerrar sesión" onClick={logout} danger />
       </section>
     </div>
+  );
+}
+
+// Avisos en el celu el día antes de cada parcial y entrega. Se activan por dispositivo.
+function Avisos() {
+  const { tree } = useFacu();
+  const toast = useToast();
+  const [on, setOn] = useState(avisosActivos);
+  const [busy, setBusy] = useState(false);
+
+  async function toggle() {
+    setBusy(true);
+    try {
+      if (on) {
+        await desactivarAvisos();
+        setOn(false);
+        toast('Listo, no te vamos a mandar más avisos en este dispositivo.');
+      } else {
+        await activarAvisos(tree);
+        setOn(true);
+        toast('Listo. Te llegó un aviso de prueba.');
+      }
+    } catch (e) {
+      toast(errorText(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <section className="mb-8">
+      <h2 className="text-sm font-bold text-muted mb-2">Avisos</h2>
+      <button
+        onClick={toggle}
+        disabled={busy}
+        role="switch"
+        aria-checked={on}
+        className="w-full bg-surface border border-line rounded-3xl px-4 py-3 flex items-center gap-3 text-left hover:bg-sunken disabled:opacity-60"
+      >
+        <span className="flex-1">
+          <span className="block font-medium">Avisarme de parciales y entregas</span>
+          <span className="block text-sm text-muted">El día antes y el mismo día, a la mañana</span>
+        </span>
+        <span className={`w-12 h-7 rounded-full p-0.5 transition ${on ? 'bg-accent' : 'bg-line'}`}>
+          <span className={`block size-6 rounded-full bg-white shadow transition ${on ? 'translate-x-5' : ''}`} />
+        </span>
+      </button>
+    </section>
   );
 }
 

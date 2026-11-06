@@ -4,6 +4,7 @@ import { FacuContext } from './lib/context';
 import { Offline } from './components/icons';
 import { AuthError, currentUser, offlineMode } from './lib/drive';
 import { cachedTree, loadTree, type Tree } from './lib/facu';
+import { sincronizarAvisos } from './lib/avisos';
 import { useRoute } from './lib/router';
 import Shell from './components/Shell';
 import MochiBubble from './components/MochiBubble';
@@ -60,6 +61,7 @@ export default function App() {
       fresh.current = true;
       setTree(t);
       setStatus('ready');
+      if (!offlineMode) sincronizarAvisos(t);
     } catch (e) {
       if (e instanceof AuthError) return setStatus('login');
       setError(errorText(e));

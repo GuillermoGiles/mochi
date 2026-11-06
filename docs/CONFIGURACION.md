@@ -39,6 +39,19 @@ Para que un compañero pueda recibir una carpeta compartida, Mochi necesita una 
 3. En **Restricciones de API**, elegí **Google Drive API**. Guardá.
 4. Pegala en `.env.local` como `VITE_GOOGLE_API_KEY=...` (y en Vercel, en las variables del proyecto).
 
+## Avisos de parciales y entregas (una sola vez)
+
+Para mandar notificaciones con la app cerrada hace falta una base de datos chica y unas claves.
+
+1. **Base de datos:** en Vercel, el proyecto → **Storage** → **Create Database** → **Upstash for Redis** (plan gratis) → conectala al proyecto. Vercel agrega solo las variables `KV_REST_API_URL` y `KV_REST_API_TOKEN`.
+2. **Claves de los avisos:** en la compu, `npx web-push generate-vapid-keys` y cargá en Vercel (Settings → Environment Variables):
+   - `VAPID_PUBLIC_KEY` = la clave pública
+   - `VAPID_PRIVATE_KEY` = la clave privada (no la compartas)
+3. **Tarea diaria:** cargá `CRON_SECRET` con cualquier texto largo y aleatorio. Vercel lo usa para llamar a `/api/cron-avisos` todas las mañanas (8 h de Argentina, ver `crons` en `vercel.json`; en el plan gratis puede llegar dentro de esa hora).
+4. Volvé a publicar (Deployments → Redeploy) para que tome las variables.
+
+Si cambiás las claves de los avisos, cada uno tiene que volver a activarlos en Vos.
+
 ## Usarla en la compu
 
 ```
