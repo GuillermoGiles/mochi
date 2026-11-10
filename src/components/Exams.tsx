@@ -8,12 +8,12 @@ import { Button, Modal, errorText } from './ui';
 const SUGGESTIONS = ['Parcial 1', 'Parcial 2', 'Recuperatorio', 'Final', 'Coloquio'];
 
 // Crear, editar o borrar una fecha.
-export function ExamModal({ exam, materiaId, onClose }: { exam?: Exam; materiaId?: string; onClose: () => void }) {
+export function ExamModal({ exam, materiaId, defaultDate, onClose }: { exam?: Exam; materiaId?: string; defaultDate?: string; onClose: () => void }) {
   const { tree, reload } = useFacu();
   const cursando = tree.years.flatMap((y) => y.materias.filter((m) => !m.aprobada).map((m) => ({ m, y })));
   const [mid, setMid] = useState(exam?.materiaId ?? materiaId ?? cursando[0]?.m.id ?? '');
   const [title, setTitle] = useState(exam?.title ?? '');
-  const [date, setDate] = useState(exam?.date ?? '');
+  const [date, setDate] = useState(exam?.date ?? defaultDate ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
   const [saved, setSaved] = useState<Exam | null>(null);
