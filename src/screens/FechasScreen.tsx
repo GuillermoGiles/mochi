@@ -11,9 +11,11 @@ export default function FechasScreen() {
   const { tree } = useFacu();
   const [editing, setEditing] = useState<Exam | 'new' | null>(null);
   const exams = upcomingExams(tree);
+  // "Esta semana" es la semana de calendario: de hoy hasta el domingo.
+  const finDeSemana = 7 - (new Date().getDay() || 7);
   const groups = [
-    { label: 'Esta semana', items: exams.filter((e) => daysUntil(e.date) <= 7) },
-    { label: 'Próximas semanas', items: exams.filter((e) => daysUntil(e.date) > 7 && daysUntil(e.date) <= 31) },
+    { label: 'Esta semana', items: exams.filter((e) => daysUntil(e.date) <= finDeSemana) },
+    { label: 'Próximas semanas', items: exams.filter((e) => daysUntil(e.date) > finDeSemana && daysUntil(e.date) <= 31) },
     { label: 'Más adelante', items: exams.filter((e) => daysUntil(e.date) > 31) },
   ].filter((g) => g.items.length);
 
