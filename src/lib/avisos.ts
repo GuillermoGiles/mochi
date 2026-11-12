@@ -1,4 +1,5 @@
 // Avisos de parciales y entregas en el celu (el día antes y el mismo día), aunque la app esté cerrada.
+// También el de la noche si tenés racha de repaso y hoy no repasaste.
 // Lo que manda los avisos está en api/_avisos.ts; acá se activan y se le pasan las próximas fechas.
 
 import { daysUntil } from './datos';
@@ -37,6 +38,9 @@ function eventos(tree: Tree) {
   ].sort((a, b) => a.d.localeCompare(b.d));
 }
 
+// La racha del repaso, para el aviso de la noche ("no pierdas tu racha").
+const racha = (tree: Tree) => (tree.repaso?.ultimo ? { n: tree.repaso.racha, u: tree.repaso.ultimo } : undefined);
+
 async function post(body: unknown) {
   const r = await fetch('/api/avisos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
   if (!r.ok) throw new Error(r.status === 502 ? 'No llegó el aviso de prueba. Probá de nuevo en un rato.' : 'No se pudieron activar los avisos. Probá de nuevo en un rato.');
@@ -73,10 +77,10 @@ export async function activarAvisos(tree: Tree) {
   const sub =
     (await reg.pushManager.getSubscription()) ??
     (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: claveBytes(clave) }));
-  const ev = eventos(tree);
-  await post({ sub: sub.toJSON(), eventos: ev });
+  const datos = { eventos: eventos(tree), racha: racha(tree) };
+  await post({ sub: sub.toJSON(), ...datos });
   set(ON, '1');
-  set(SENT, JSON.stringify(ev));
+  set(SENT, JSON.stringify(datos));
 }
 
 export async function desactivarAvisos() {
@@ -94,9 +98,9 @@ export async function desactivarAvisos() {
 // (aunque en este no estén activados), para que lo cargado en la compu llegue a los avisos del celu.
 // Si la cuenta no tiene avisos activados, el servidor no guarda nada.
 export function sincronizarAvisos(tree: Tree) {
-  const ev = JSON.stringify(eventos(tree));
-  if (ev === get(SENT)) return;
-  post({ eventos: JSON.parse(ev) })
-    .then(() => set(SENT, ev))
+  const datos = JSON.stringify({ eventos: eventos(tree), racha: racha(tree) });
+  if (datos === get(SENT)) return;
+  post(JSON.parse(datos))
+    .then(() => set(SENT, datos))
     .catch(() => {});
 }

@@ -13,7 +13,9 @@ import { SESSION, env, readCookie, respond, unseal } from './_shared.js';
 type Sub = { endpoint: string; keys: { p256dh: string; auth: string } };
 // t = título, m = materia, d = día (AAAA-MM-DD), e = es una entrega (si no, parcial o final).
 type Evento = { t: string; m: string; d: string; e: boolean };
-type Guardado = { subs: Sub[]; eventos: Evento[] };
+// Racha del repaso diario: días seguidos (n) y último día que repasó (u). Para avisarle a la noche si todavía no repasó.
+type Racha = { n: number; u: string };
+type Guardado = { subs: Sub[]; eventos: Evento[]; racha?: Racha };
 
 const USERS = 'avisos';
 
@@ -83,11 +85,12 @@ export const clave = () => respond(200, { clave: env('VAPID_PUBLIC_KEY') });
 // POST /api/avisos
 //   { sub, eventos }  activa los avisos en este dispositivo (y manda uno de prueba)
 //   { eventos }       actualiza las fechas (si no tiene avisos activados, no se guarda nada)
+//   { racha }         actualiza la racha del repaso (igual: solo si tiene avisos activados)
 //   { quitar }        desactiva los avisos en el dispositivo con ese endpoint
 export async function avisos(req: Request) {
   const session = await unseal(readCookie(req, SESSION));
   if (!session) return respond(401, { error: 'sin_sesion' });
-  let body: { sub?: unknown; eventos?: unknown; quitar?: unknown };
+  let body: { sub?: unknown; eventos?: unknown; quitar?: unknown; racha?: unknown };
   try {
     body = await req.json();
   } catch {
@@ -109,6 +112,8 @@ export async function avisos(req: Request) {
       .slice(0, 100)
       .map((e: Partial<Evento>) => ({ t: str(e?.t, 120), m: str(e?.m, 120), d: str(e?.d, 10), e: e?.e === true }))
       .filter((e) => /^\d{4}-\d{2}-\d{2}$/.test(e.d) && e.t);
+  const r = body.racha as Partial<Racha> | undefined;
+  if (r && Number.isInteger(r.n) && r.n! >= 0 && r.n! < 100_000 && /^\d{4}-\d{2}-\d{2}$/.test(r.u ?? '')) g.racha = { n: r.n!, u: r.u! };
 
   if (nuevo) {
     vapid(new URL(req.url).origin);
@@ -136,6 +141,30 @@ export function mensaje(eventos: Evento[], hoy: string, manana: string): Mensaje
   return lineas.length === 1
     ? { title: lineas[0], body: 'Tocá para verlo en Mochi', url: soloEntregas ? '/#/entregas' : '/#/fechas' }
     : { title: `Tenés ${lineas.length} cosas entre hoy y mañana`, body: lineas.join('\n'), url: soloEntregas ? '/#/entregas' : '/#/fechas' };
+}
+
+// GET /api/cron-racha: lo llama Vercel a la noche (20 hs). A quien tiene racha y hoy no repasó, le recuerda
+// que la pierde si no repasa antes de medianoche.
+export async function cronRacha(req: Request) {
+  if (req.headers.get('authorization') !== `Bearer ${env('CRON_SECRET')}`) return respond(401, { error: 'no' });
+  vapid(new URL(req.url).origin);
+  const ayer = dia(-1);
+  const keys: string[] = (await redis('SMEMBERS', USERS)) ?? [];
+  let enviados = 0;
+  for (const key of keys) {
+    const g = await load(key);
+    // Solo si repasó ayer (la racha sigue viva) y hoy todavía no.
+    if (!g?.racha || g.racha.n < 1 || g.racha.u !== ayer) continue;
+    const n = g.racha.n;
+    const vivos = await enviar(g.subs, {
+      title: `¡No pierdas tu racha de ${n} ${n === 1 ? 'día' : 'días'}!`,
+      body: 'Te faltan las 5 preguntas de hoy. Son 2 minutos.',
+      url: '/#/repaso',
+    });
+    enviados++;
+    if (vivos.length !== g.subs.length) await save(key, { ...g, subs: vivos });
+  }
+  return respond(200, { usuarios: keys.length, enviados });
 }
 
 // GET /api/cron-avisos: lo llama Vercel una vez por día (a la mañana).

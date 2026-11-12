@@ -212,13 +212,20 @@ input[type='date']::-webkit-date-and-time-value {
 .fade-up { animation: fade-up 0.25s ease-out both; }
 .fade-in { animation: fade-in 0.2s ease-out; }
 .sheet-up { animation: sheet-up 0.22s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+/* La llama de la racha al terminar el repaso del día. */
+@keyframes racha-pop {
+  0% { transform: scale(0.3); opacity: 0; }
+  60% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.racha-pop { animation: racha-pop 0.5s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .skeleton {
   background: linear-gradient(90deg, var(--sunken) 25%, var(--line) 50%, var(--sunken) 75%);
   background-size: 200% 100%;
   animation: shimmer 1.4s linear infinite;
 }
 @media (prefers-reduced-motion: reduce) {
-  .fade-up, .fade-in, .sheet-up, .skeleton { animation: none; }
+  .fade-up, .fade-in, .sheet-up, .skeleton, .racha-pop { animation: none; }
 }
 .no-scrollbar { scrollbar-width: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }

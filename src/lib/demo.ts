@@ -36,7 +36,7 @@ export const demoFiles: DFile[] = [
   })),
   { id: 'p1', name: 'Parcial 1 2025.pdf', mimeType: 'application/pdf', modifiedTime: now, parents: ['c-par'] },
   { id: 'p2', name: 'Final resuelto.docx', mimeType: 'application/octet-stream', modifiedTime: now, parents: ['c-par'] },
-  { id: 'p3', name: 'Foto pizarrón.jpg', mimeType: 'image/jpeg', modifiedTime: now, parents: ['c-par'] },
+  { id: 'p3', name: 'Foto pizarrón.jpg', mimeType: 'image/jpeg', size: '300000', modifiedTime: now, parents: ['c-par'] },
   { id: 't1', name: 'Consigna TP1.pdf', mimeType: 'application/pdf', modifiedTime: now, parents: ['c-tp1'] },
   { id: 't2', name: 'Modelo ER.excalidraw', mimeType: 'application/json', modifiedTime: now, parents: ['c-tp1'] },
   { id: 't3', name: 'Consigna TP2.pdf', mimeType: 'application/pdf', modifiedTime: now, parents: ['c-tp2'] },

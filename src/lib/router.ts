@@ -8,11 +8,12 @@
 //   #/yo            tu perfil, promedio y ajustes
 //   #/importar/<id> recibir apuntes que te compartieron
 //   #/ia            preguntarle a la IA
+//   #/repaso        repaso del día (preguntas y racha)
 //   ...?f=<id>      archivo abierto encima de cualquier pantalla
 
 import { useEffect, useState } from 'react';
 
-export type Route = { name: 'home' | 'materia' | 'search' | 'fechas' | 'entregas' | 'carrera' | 'yo' | 'importar' | 'ia'; id?: string; folder?: string; q?: string; file?: string };
+export type Route = { name: 'home' | 'materia' | 'search' | 'fechas' | 'entregas' | 'carrera' | 'yo' | 'importar' | 'ia' | 'repaso'; id?: string; folder?: string; q?: string; file?: string };
 
 function split() {
   const [path, qs = ''] = location.hash.replace(/^#/, '').split('?');
@@ -30,6 +31,7 @@ export function parse(): Route {
   if (parts[0] === 'carrera') return { name: 'carrera', file };
   if (parts[0] === 'yo') return { name: 'yo', file };
   if (parts[0] === 'ia') return { name: 'ia', file };
+  if (parts[0] === 'repaso') return { name: 'repaso' };
   if (parts[0] === 'importar' && parts[1]) return { name: 'importar', id: parts[1] };
   return { name: 'home', file };
 }

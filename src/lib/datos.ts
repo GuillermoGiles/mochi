@@ -11,7 +11,30 @@ export type Grade = { id: string; materiaId: string; title: string; nota: number
 export type Entrega = { id: string; materiaId: string; title: string; desc?: string; date: string; done: boolean };
 // plan: estado de las materias del plan que no tienen carpeta (por código del plan).
 // carrera: la que eligió al empezar; sin carrera es Sistemas.
-export type Datos = { version: 1; carrera?: CarreraId; exams: Exam[]; grades: Grade[]; entregas: Entrega[]; plan: Record<string, PlanMark> };
+// Repaso diario: preguntas armadas con la IA a partir de tus apuntes, y la racha de días seguidos.
+//   caja: de 1 a 5, sube cuando la acertás; cuanto más alta, más días tarda en volver (proxima).
+export type Pregunta = {
+  id: string;
+  materiaId: string;
+  q: string;
+  opciones: string[];
+  ok: number;
+  por?: string;
+  fuente?: string;
+  caja: number;
+  proxima: string;
+};
+// usados: archivos de los que ya se sacaron preguntas, para ir rotando.
+export type Repaso = { racha: number; mejor: number; ultimo?: string; preguntas: Pregunta[]; usados: string[] };
+export type Datos = {
+  version: 1;
+  carrera?: CarreraId;
+  exams: Exam[];
+  grades: Grade[];
+  entregas: Entrega[];
+  plan: Record<string, PlanMark>;
+  repaso?: Repaso;
+};
 
 const empty = (): Datos => ({ version: 1, exams: [], grades: [], entregas: [], plan: {} });
 // Dónde está el archivo, guardado para no tener que buscarlo cada vez.

@@ -3,6 +3,7 @@ import FileRow from '../components/FileRow';
 import { Check, ChevronRight, Folder as FolderIcon, Plus, SearchIcon, Pencil, Trash } from '../components/icons';
 import { UpcomingExams } from '../components/Exams';
 import { NextEntregas } from '../components/Entregas';
+import RachaCard from '../components/RachaCard';
 import { MateriaBadge, MateriaCover } from '../components/MateriaCover';
 import { daysUntil, fmtNota, fmtPromedio, whenLabel } from '../lib/datos';
 import UploadSheet from '../components/UploadSheet';
@@ -89,6 +90,7 @@ export default function Home() {
         <kbd className="hidden md:inline text-xs font-semibold border border-line rounded-md px-1.5 py-0.5">Ctrl K</kbd>
       </button>
 
+      <RachaCard />
       <UpcomingExams />
       <NextEntregas />
 

@@ -7,6 +7,7 @@ import { fmtNota, fmtPromedio, updateDatos } from '../lib/datos';
 import { promedio, setCarrera, setEstado, type Estado } from '../lib/facu';
 import { NIVELES, PLANES, electivasHoras, missing, planOf, ppsKey, progress, type CarreraId, type PlanRow } from '../lib/plan';
 import { go } from '../lib/router';
+import { ritmoInicial, simular } from '../lib/simulador';
 
 type Status = 'aprobada' | 'final' | 'cursando' | 'libre' | 'bloqueada';
 
@@ -128,6 +129,8 @@ export default function CarreraScreen() {
         </div>
       </section>
 
+      {p.porcentaje < 100 && <Simulador />}
+
       {libres.length > 0 && (
         <section className="mb-8">
           <h2 className="text-sm font-bold text-muted mb-2">Ya podés cursar</h2>
@@ -225,6 +228,83 @@ export default function CarreraScreen() {
         editing && <PlanModal row={byCode.get(editing.code)!} byCode={byCode} onClose={() => setEditing(null)} />
       )}
     </div>
+  );
+}
+
+// ¿Cuándo terminás? Elegís cuántas materias por año y muestra qué cursarías cada año.
+function Simulador() {
+  const { tree } = useFacu();
+  const [ritmo, setRitmo] = useState(() => ritmoInicial(tree));
+  const [open, setOpen] = useState(false);
+  const sim = simular(tree, ritmo);
+  if (sim.yaTermino) return null;
+  const anios = sim.anios.length;
+  const step = (d: number) => setRitmo((r) => Math.min(10, Math.max(1, r + d)));
+
+  return (
+    <section className="bg-surface border border-line rounded-3xl p-5 mb-8">
+      <h2 className="text-sm font-bold text-muted">¿Cuándo terminás?</h2>
+      <p className="text-lg font-extrabold leading-tight mt-1">
+        {sim.termina ? (
+          <>
+            Terminarías de cursar en <span className="text-accent">{sim.termina}</span>
+          </>
+        ) : (
+          'Con este ritmo no se llega a terminar'
+        )}
+      </p>
+      {sim.termina && (
+        <p className="text-sm text-muted mt-0.5">
+          {anios === 1 ? 'En 1 año más' : `En ${anios} años más`}, si aprobás todo lo que cursás.
+        </p>
+      )}
+
+      <div className="flex items-center gap-3 mt-4">
+        <div className="flex items-center rounded-full border border-line">
+          <button onClick={() => step(-1)} disabled={ritmo <= 1} aria-label="Menos materias" className="size-10 grid place-items-center text-xl font-bold disabled:opacity-30">
+            −
+          </button>
+          <span className="w-8 text-center text-lg font-extrabold tabular-nums">{ritmo}</span>
+          <button onClick={() => step(1)} disabled={ritmo >= 10} aria-label="Más materias" className="size-10 grid place-items-center text-xl font-bold disabled:opacity-30">
+            +
+          </button>
+        </div>
+        <span className="text-[15px]">materias por año</span>
+      </div>
+
+      {anios > 0 && (
+        <>
+          <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-1 mt-4 text-sm font-semibold text-accent">
+            <ChevronRight width={16} height={16} className={`transition ${open ? 'rotate-90' : ''}`} />
+            {open ? 'Ocultar' : 'Ver'} qué cursarías cada año
+          </button>
+          {open && (
+            <div className="mt-3 space-y-4">
+              {sim.anios.map((a) => (
+                <div key={a.anio}>
+                  <p className="font-bold">{a.anio}</p>
+                  <ul className="mt-1 space-y-0.5">
+                    {a.materias.map((r) => (
+                      <li key={r.code} className="text-[15px] flex gap-2">
+                        <span className="text-muted">·</span>
+                        <span className="min-w-0">
+                          {r.name}
+                          {r.electiva && <span className="text-muted"> (electiva)</span>}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+              <p className="text-xs text-muted">
+                Supone que regularizás lo que cursás ahora y rendís los finales en diciembre o febrero, antes de anotarte al año siguiente. La PPS
+                {' '}la podés hacer en paralelo.
+              </p>
+            </div>
+          )}
+        </>
+      )}
+    </section>
   );
 }
 

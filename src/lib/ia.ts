@@ -2,7 +2,7 @@
 // y la conversación con Gemini a través de /api/ia.
 
 import { daysUntil, fmtNota, updateDatos } from './datos';
-import { fileCache, getFile, move, rename, type DFile } from './drive';
+import { DEMO, fileCache, getFile, move, rename, type DFile } from './drive';
 import {
   addFolder,
   folderPath,
@@ -69,6 +69,48 @@ export async function ask(contents: Content[], contexto: string) {
     throw new IaError('No se pudo mandar la pregunta (puede ser un archivo muy largo). Recargá la página y probá de nuevo.', 'gemini');
   if (!r.ok) throw new IaError('Gemini no respondió. Puede estar saturado: probá de nuevo en un rato.', 'gemini');
   return j as { content: Content | null; restantes: number | null; limite: number };
+}
+
+export type PreguntaIA = { pregunta: string; opciones: string[]; correcta: number; explicacion: string };
+
+// Repaso diario: 5 preguntas de opción múltiple sobre un apunte (texto, o una foto chica).
+export async function pedirPreguntas(materia: string, archivo: string, apunte: { texto?: string; foto?: { mimeType: string; data: string } }) {
+  if (DEMO)
+    return Array.from({ length: 5 }, (_, n) => ({
+      pregunta: `Pregunta de prueba ${n + 1} sobre ${materia}: ¿qué es una clave primaria?`,
+      opciones: ['Identifica cada fila', 'Ordena la tabla', 'Borra duplicados', 'Une dos tablas'],
+      correcta: 0,
+      explicacion: 'La clave primaria identifica de forma única cada fila de la tabla.',
+    }));
+  const parts: Part[] = [{ text: `Materia: ${materia}\nApunte: ${archivo}\n\n${apunte.texto ?? '(está adjunto: miralo)'}` }];
+  if (apunte.foto) parts.push({ inlineData: apunte.foto });
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  const k = ownKey();
+  if (k) headers['x-gemini-key'] = k;
+  const r = await fetch('/api/ia', { method: 'POST', headers, body: JSON.stringify({ modo: 'preguntas', contents: [{ role: 'user', parts }] }) });
+  const j = await r.json().catch(() => ({}));
+  if (r.status === 429) throw new IaError('Por hoy se terminaron las preguntas de la IA. Mañana se renueva.', 'limite');
+  if (r.status === 401) throw new IaError('Se cerró tu sesión. Volvé a entrar.', 'sesion');
+  if (!r.ok) throw new IaError('La IA no respondió. Probá de nuevo en un rato.', 'gemini');
+  const text = (j.content?.parts as Part[] | undefined)?.map((p) => p.text ?? '').join('') ?? '';
+  let out: PreguntaIA[] = [];
+  try {
+    out = JSON.parse(text);
+  } catch {
+    return [];
+  }
+  // Solo las que vienen bien armadas.
+  return (Array.isArray(out) ? out : []).filter(
+    (p) =>
+      typeof p?.pregunta === 'string' &&
+      Array.isArray(p.opciones) &&
+      p.opciones.length >= 2 &&
+      p.opciones.length <= 5 &&
+      p.opciones.every((o) => typeof o === 'string' && o.trim()) &&
+      Number.isInteger(p.correcta) &&
+      p.correcta >= 0 &&
+      p.correcta < p.opciones.length,
+  );
 }
 
 // Lo que la IA necesita saber de entrada: la fecha, las materias y dónde estás.
@@ -154,10 +196,24 @@ export function activity(c: Call) {
 
 const MAX_TEXT = 60_000;
 
-async function readText(f: DFile): Promise<string> {
+// Los dibujos de Excalidraw son un JSON enorme: solo interesa lo escrito.
+function excalidrawText(json: string) {
+  try {
+    const els: { type?: string; text?: string; isDeleted?: boolean }[] = JSON.parse(json).elements ?? [];
+    return els
+      .filter((x) => x.type === 'text' && x.text && !x.isDeleted)
+      .map((x) => x.text!.trim())
+      .join('\n');
+  } catch {
+    return '';
+  }
+}
+
+export async function readText(f: DFile): Promise<string> {
   const blob = await fileBlob(f);
   const k = kindOf(f);
   const e = extOf(f.name);
+  if (e === 'excalidraw') return excalidrawText(await blob.text()) || 'El dibujo no tiene texto escrito.';
   if (k === 'pdf') {
     const pdfjs = await import('pdfjs-dist');
     const worker = (await import('pdfjs-dist/build/pdf.worker.min.mjs?url')).default;
@@ -315,7 +371,7 @@ export async function runTool(tree: Tree, c: Call): Promise<unknown> {
     case 'agregar_entrega': {
       const m = findMateria(tree, a.materia_id);
       const fecha = str(a.fecha);
-      if (!/^d{4}-d{2}-d{2}$/.test(fecha)) throw new Error('La fecha tiene que tener el formato AAAA-MM-DD.');
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(fecha)) throw new Error('La fecha tiene que tener el formato AAAA-MM-DD.');
       await updateDatos(tree.rootId, (d) => {
         d.entregas.push({ id: crypto.randomUUID(), materiaId: m.id, title: str(a.titulo), desc: a.detalle ? str(a.detalle) : undefined, date: fecha, done: false });
       });

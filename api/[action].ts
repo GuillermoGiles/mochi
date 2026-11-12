@@ -16,7 +16,7 @@ import {
   unseal,
 } from './_shared.js';
 import { authorize, corsPreflight, extToken, googleCallback, mcp, metadata, register, token } from './_mcp.js';
-import { avisos, clave, cron } from './_avisos.js';
+import { avisos, clave, cron, cronRacha } from './_avisos.js';
 
 // Pedidos previos de navegadores (CORS) para el conector de Claude.
 export const OPTIONS = () => corsPreflight();
@@ -95,6 +95,7 @@ export async function GET(req: Request) {
   // Avisos de parciales y entregas.
   if (action === 'avisos-clave') return clave();
   if (action === 'cron-avisos') return cron(req);
+  if (action === 'cron-racha') return cronRacha(req);
 
   return respond(404, { error: 'no_existe' });
 }
@@ -121,6 +122,29 @@ Cómo trabajar:
 - Usá los ids que devuelven las herramientas; nunca los inventes. Si hay varias materias o carpetas posibles, preguntá cuál.
 - Para fechas, usá el formato AAAA-MM-DD. Tené en cuenta la fecha de hoy que figura en el contexto.
 - Respuestas cortas, con listas cuando ayuden. Podés usar **negrita**.`;
+
+// Repaso diario: arma preguntas de opción múltiple con el texto de un apunte.
+const PREGUNTAS_SYSTEM = `Armás preguntas de repaso para un estudiante de ingeniería (UTN), en español rioplatense, a partir de UN apunte suyo.
+- Exactamente 5 preguntas de opción múltiple, con 4 opciones cada una y una sola correcta.
+- Que pregunten conceptos importantes del apunte (definiciones, diferencias, para qué sirve algo, pasos, ejemplos), no detalles triviales como números de página o nombres de archivo.
+- Usá solo lo que dice el apunte. No inventes.
+- Opciones incorrectas creíbles, del mismo largo que la correcta. Variá la posición de la correcta.
+- Preguntas cortas (máximo 25 palabras) y opciones cortas (máximo 12 palabras).
+- "explicacion": una o dos oraciones que expliquen por qué la correcta es la correcta.
+- Si el apunte no tiene contenido suficiente para preguntar algo con sentido, devolvé una lista vacía.`;
+const PREGUNTAS_SCHEMA = {
+  type: 'ARRAY',
+  items: {
+    type: 'OBJECT',
+    properties: {
+      pregunta: { type: 'STRING' },
+      opciones: { type: 'ARRAY', items: { type: 'STRING' } },
+      correcta: { type: 'INTEGER', description: 'Posición de la opción correcta, empezando en 0' },
+      explicacion: { type: 'STRING' },
+    },
+    required: ['pregunta', 'opciones', 'correcta', 'explicacion'],
+  },
+};
 
 const prop = (type: string, description: string) => ({ type, description });
 const IA_TOOLS = [
@@ -285,7 +309,7 @@ export async function POST(req: Request) {
 
   const raw = await req.text();
   if (raw.length > 2_000_000) return respond(413, { error: 'muy_largo' });
-  let body: { contents: { role: string; parts: { text?: string }[] }[]; contexto?: string };
+  let body: { contents: { role: string; parts: { text?: string }[] }[]; contexto?: string; modo?: string };
   try {
     body = JSON.parse(raw);
     if (!Array.isArray(body?.contents)) throw new Error();
@@ -304,12 +328,20 @@ export async function POST(req: Request) {
   if (!ownKey && isNew && use.n >= IA_LIMIT) return respond(429, { error: 'limite', restantes: 0, limite: IA_LIMIT });
 
   const key = ownKey || env('GEMINI_API_KEY');
-  const payload = JSON.stringify({
-    systemInstruction: { parts: [{ text: `${IA_SYSTEM}\n\nContexto:\n${body.contexto ?? ''}` }] },
-    contents: body.contents,
-    tools: IA_TOOLS,
-    generationConfig: { temperature: 0.4 },
-  });
+  const payload = JSON.stringify(
+    body.modo === 'preguntas'
+      ? {
+          systemInstruction: { parts: [{ text: PREGUNTAS_SYSTEM }] },
+          contents: body.contents,
+          generationConfig: { temperature: 0.7, responseMimeType: 'application/json', responseSchema: PREGUNTAS_SCHEMA },
+        }
+      : {
+          systemInstruction: { parts: [{ text: `${IA_SYSTEM}\n\nContexto:\n${body.contexto ?? ''}` }] },
+          contents: body.contents,
+          tools: IA_TOOLS,
+          generationConfig: { temperature: 0.4 },
+        },
+  );
 
   let last = '';
   for (const model of IA_MODELS) {

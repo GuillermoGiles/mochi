@@ -3,7 +3,7 @@
 // Año y materia se marcan con appProperties (así no importa si se renombran).
 // Adentro de la materia, las carpetas son libres y pueden tener subcarpetas.
 
-import { cachedDatos, loadDatos, daysUntil, updateDatos, type Datos, type Entrega, type Exam, type Grade } from './datos';
+import { cachedDatos, loadDatos, daysUntil, updateDatos, type Datos, type Entrega, type Exam, type Grade, type Repaso } from './datos';
 import { planRows, type CarreraId, type PlanMark } from './plan';
 import { cachedList, createFolder, DEMO, escapeQuery, FOLDER, folderChanges, list, rename, trash, update, type DFile } from './drive';
 
@@ -59,6 +59,7 @@ export type Tree = {
   entregas: Entrega[];
   plan: Record<string, PlanMark>;
   carrera?: CarreraId;
+  repaso?: Repaso;
 };
 // folder vacío = archivo suelto en la materia.
 export type FileItem = DFile & { materia: Materia; folder?: Folder };
@@ -153,7 +154,7 @@ function buildTree(all: DFile[], root: DFile, datos: Datos): Tree {
   for (const m of materias.values()) m.folders.sort(byName);
   for (const f of folders.values()) f.children.sort(byName);
 
-  return { rootId: root.id, rootLink: root.webViewLink, years, materias, folders, exams: datos.exams, grades: datos.grades ?? [], entregas: datos.entregas ?? [], plan: datos.plan ?? {}, carrera: datos.carrera };
+  return { rootId: root.id, rootLink: root.webViewLink, years, materias, folders, exams: datos.exams, grades: datos.grades ?? [], entregas: datos.entregas ?? [], plan: datos.plan ?? {}, carrera: datos.carrera, repaso: datos.repaso };
 }
 
 const yearName = (index: number) => YEAR_NAMES[index] ?? `Año ${index + 1}`;
