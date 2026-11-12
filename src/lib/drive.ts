@@ -172,9 +172,22 @@ export const trash = (id: string) => update(id, { trashed: true });
 export const move = (id: string, from: string[], to: string) =>
   update(id, {}, { addParents: to, removeParents: from.join(',') });
 
-export async function download(id: string) {
+// onProgress recibe de 0 a 1 mientras baja (si se sabe el tamaño), para mostrar cuánto falta.
+export async function download(id: string, size?: number, onProgress?: (p: number) => void) {
   if (DEMO) return (await import('./demo')).demoBlob(id);
-  return (await req(`${API}/files/${id}?alt=media`)).blob();
+  const r = await req(`${API}/files/${id}?alt=media`);
+  if (!onProgress || !size || !r.body) return r.blob();
+  const reader = r.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let got = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    chunks.push(value);
+    got += value.length;
+    onProgress(Math.min(got / size, 1));
+  }
+  return new Blob(chunks as BlobPart[], { type: r.headers.get('Content-Type') ?? '' });
 }
 
 // Presentaciones (.pptx): Drive hace una copia convertida a Google Slides, la exporta a PDF y la borra.

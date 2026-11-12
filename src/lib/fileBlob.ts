@@ -4,11 +4,11 @@
 import { download, slidesPdf, type DFile } from './drive';
 import { getList, getOffline, isNetworkError, putList, removeOffline, saveOffline } from './offline';
 
-export async function fileBlob(file: DFile): Promise<Blob> {
+export async function fileBlob(file: DFile, onProgress?: (p: number) => void): Promise<Blob> {
   const saved = await getOffline(file.id);
   if (saved && saved.modifiedTime === file.modifiedTime) return saved.blob;
   try {
-    const blob = await download(file.id);
+    const blob = await download(file.id, Number(file.size) || undefined, onProgress);
     // Si estaba guardado pero cambió en Drive, se actualiza la copia.
     if (saved) await saveOffline({ ...saved, name: file.name, modifiedTime: file.modifiedTime, blob });
     return blob;

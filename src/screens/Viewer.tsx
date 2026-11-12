@@ -22,6 +22,7 @@ export default function Viewer({ id }: { id: string }) {
   const toast = useToast();
   const [file, setFile] = useState<DFile | null>(fileCache.get(id) ?? null);
   const [blob, setBlob] = useState<Blob | null>(null);
+  const [progress, setProgress] = useState(0);
   const [error, setError] = useState('');
   const [modal, setModal] = useState<'rename' | 'move' | 'delete' | null>(null);
   const [isOffline, setIsOffline] = useState(false);
@@ -44,7 +45,8 @@ export default function Viewer({ id }: { id: string }) {
   useEffect(() => {
     if (!file || !previewable) return;
     let alive = true;
-    (kindOf(file) === 'slides' ? slidesBlob(file) : fileBlob(file)).then(
+    const onProgress = (p: number) => alive && setProgress(p);
+    (kindOf(file) === 'slides' ? slidesBlob(file) : fileBlob(file, onProgress)).then(
       (b) => alive && setBlob(b),
       (e) => alive && setError(errorText(e)),
     );
@@ -199,7 +201,20 @@ export default function Viewer({ id }: { id: string }) {
         </div>
       </Center>
     );
-  else if (!blob) body = <Center><Spinner /><p className="text-muted mt-3">Abriendo…</p></Center>;
+  // Las fotos se muestran enseguida con la versión de Drive mientras baja la original.
+  else if (kind === 'image')
+    body = (
+      <Suspense fallback={<Center><Spinner /></Center>}>
+        <ImageView blob={blob} progress={progress} name={file.name} thumbnail={file.thumbnailLink} onOpenDrive={openInDrive} />
+      </Suspense>
+    );
+  else if (!blob)
+    body = (
+      <Center>
+        <Spinner />
+        <p className="text-muted mt-3">Abriendo…{progress > 0 && ` ${Math.round(progress * 100)}%`}</p>
+      </Center>
+    );
   else
     body = (
       <ErrorBoundary resetKey={id} onClose={closeFile}>
@@ -207,7 +222,6 @@ export default function Viewer({ id }: { id: string }) {
         {(kind === 'pdf' || kind === 'slides') && <PdfView blob={blob} />}
         {kind === 'word' && <DocxView blob={blob} />}
         {kind === 'excel' && <SheetView blob={blob} />}
-        {kind === 'image' && <ImageView blob={blob} name={file.name} thumbnail={file.thumbnailLink} onOpenDrive={openInDrive} />}
       </Suspense>
       </ErrorBoundary>
     );
