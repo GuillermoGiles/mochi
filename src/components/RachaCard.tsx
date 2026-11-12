@@ -15,10 +15,12 @@ export default function RachaCard() {
   // Con racha y sin repasar hoy: se pierde a la noche.
   const peligro = racha > 0 && !hecho;
 
+  // Ya repasaste hoy: solo muestra la racha, el próximo repaso es mañana.
+  const Tag = hecho ? 'div' : 'button';
   return (
-    <button
-      onClick={() => go('/repaso')}
-      className={`mt-4 w-full flex items-center gap-4 rounded-3xl border p-4 text-left transition hover:border-accent ${
+    <Tag
+      onClick={hecho ? undefined : () => go('/repaso')}
+      className={`mt-4 w-full flex items-center gap-4 rounded-3xl border p-4 text-left transition ${hecho ? '' : 'hover:border-accent'} ${
         peligro ? 'border-orange-400 bg-orange-500/10' : 'border-line bg-surface'
       }`}
     >
@@ -41,6 +43,6 @@ export default function RachaCard() {
           Empezar <ChevronRight width={18} height={18} />
         </span>
       )}
-    </button>
+    </Tag>
   );
 }

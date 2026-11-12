@@ -8,12 +8,19 @@ import { baseName } from '../lib/files';
 import { go } from '../lib/router';
 import { hechoHoy, prepararRepaso, rachaActual, terminarRepaso } from '../lib/repaso';
 
-type Fase = { t: 'cargando' } | { t: 'aviso'; aviso: string } | { t: 'jugando' } | { t: 'guardando' } | { t: 'fin'; racha: number; nueva: boolean };
+type Fase =
+  | { t: 'cargando' }
+  | { t: 'hecho' }
+  | { t: 'aviso'; aviso: string }
+  | { t: 'jugando' }
+  | { t: 'guardando' }
+  | { t: 'fin'; racha: number; nueva: boolean };
 
-// El repaso del día: 5 preguntas, una por una, y al final la racha.
+// El repaso del día: 5 preguntas, una por una, y al final la racha. Uno por día: si ya lo hiciste, hasta mañana.
 export default function RepasoScreen() {
   const { tree, reload } = useFacu();
-  const [fase, setFase] = useState<Fase>({ t: 'cargando' });
+  // Se mira solo al entrar: al terminar, el árbol se actualiza y tiene que seguir mostrándose la racha.
+  const [fase, setFase] = useState<Fase>(() => (hechoHoy(tree.repaso) ? { t: 'hecho' } : { t: 'cargando' }));
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
   const [i, setI] = useState(0);
   const [elegida, setElegida] = useState<number | null>(null);
@@ -22,6 +29,7 @@ export default function RepasoScreen() {
   const yaHoy = hechoHoy(tree.repaso);
 
   useEffect(() => {
+    if (fase.t === 'hecho') return;
     let alive = true;
     prepararRepaso(tree).then(
       (r) => {
@@ -89,6 +97,20 @@ export default function RepasoScreen() {
           <Spinner />
           <p className="text-muted mt-3">Preparando tus preguntas…</p>
           <p className="text-sm text-muted mt-1 max-w-xs">La primera vez la IA lee un apunte tuyo, puede tardar unos segundos.</p>
+        </Centro>
+      )}
+
+      {fase.t === 'hecho' && (
+        <Centro>
+          <Flame size={80} className="text-orange-500" fill="currentColor" />
+          <p className="text-xl font-extrabold mt-3">Ya repasaste hoy</p>
+          <p className="text-muted mt-1 max-w-xs">
+            {rachaActual(tree.repaso) === 1 ? 'Llevás 1 día de racha.' : `Llevás ${rachaActual(tree.repaso)} días seguidos.`} Mañana te esperan las
+            preguntas nuevas.
+          </p>
+          <Button variant="primary" className="mt-6 w-full max-w-xs h-12" onClick={salir}>
+            Volver
+          </Button>
         </Centro>
       )}
 
