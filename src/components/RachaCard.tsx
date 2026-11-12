@@ -1,8 +1,36 @@
-import { Flame } from 'lucide-react';
+import { Flame, Trophy } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ligaGuardada } from '../lib/liga';
 import { useFacu } from '../lib/context';
 import { hechoHoy, materiasRepaso, rachaActual, POR_DIA } from '../lib/repaso';
 import { go } from '../lib/router';
 import { ChevronRight } from './icons';
+
+// En Inicio, abajo de la racha: cómo vas en la liga (lo último que se vio), o la invitación a armar una.
+export function LigaLink() {
+  const [liga, setLiga] = useState(ligaGuardada);
+  useEffect(() => {
+    const f = () => setLiga(ligaGuardada());
+    addEventListener('mochi:liga', f);
+    return () => removeEventListener('mochi:liga', f);
+  }, []);
+  const pos = liga ? liga.miembros.findIndex((m) => m.yo) + 1 : 0;
+  return (
+    <button onClick={() => go('/liga')} className="mt-2 w-full flex items-center gap-2 px-4 h-11 rounded-2xl text-[15px] text-left hover:bg-sunken transition">
+      <Trophy size={18} className="text-amber-500 shrink-0" />
+      <span className="flex-1 min-w-0 truncate">
+        {liga && pos ? (
+          <>
+            {liga.nombre}: <b>vas {pos}º</b> con {liga.miembros[pos - 1].puntos} puntos
+          </>
+        ) : (
+          'Liga y duelos con tus compañeros'
+        )}
+      </span>
+      <ChevronRight width={18} height={18} className="text-muted shrink-0" />
+    </button>
+  );
+}
 
 // En Inicio: la racha de días seguidos y el botón para el repaso de hoy.
 export default function RachaCard() {

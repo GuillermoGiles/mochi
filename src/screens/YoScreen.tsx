@@ -43,6 +43,7 @@ export default function YoScreen() {
     try {
       localStorage.removeItem('mochi:user');
       localStorage.removeItem(DATOS_ID);
+      localStorage.removeItem('mochi:liga');
     } catch {}
     location.href = '/api/logout';
   }

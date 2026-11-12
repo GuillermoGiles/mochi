@@ -1,10 +1,10 @@
-import { Flame } from 'lucide-react';
+import { Flame, Swords } from 'lucide-react';
 import { useEffect, useState } from 'react';
-import { Close } from '../components/icons';
-import { Button, IconButton, Spinner, errorText } from '../components/ui';
+import { Centro, QuizPreguntas, QuizShell } from '../components/Quiz';
+import { Button, Spinner, errorText, useToast } from '../components/ui';
 import { useFacu } from '../lib/context';
 import type { Pregunta } from '../lib/datos';
-import { baseName } from '../lib/files';
+import { compartir, crearDuelo, linkDuelo, sumarLiga } from '../lib/liga';
 import { go } from '../lib/router';
 import { hechoHoy, prepararRepaso, rachaActual, terminarRepaso } from '../lib/repaso';
 
@@ -19,13 +19,14 @@ type Fase =
 // El repaso del día: 5 preguntas, una por una, y al final la racha. Uno por día: si ya lo hiciste, hasta mañana.
 export default function RepasoScreen() {
   const { tree, reload } = useFacu();
+  const toast = useToast();
   // Se mira solo al entrar: al terminar, el árbol se actualiza y tiene que seguir mostrándose la racha.
   const [fase, setFase] = useState<Fase>(() => (hechoHoy(tree.repaso) ? { t: 'hecho' } : { t: 'cargando' }));
   const [preguntas, setPreguntas] = useState<Pregunta[]>([]);
-  const [i, setI] = useState(0);
-  const [elegida, setElegida] = useState<number | null>(null);
-  const [resultados, setResultados] = useState<{ id: string; acierto: boolean }[]>([]);
+  const [respuestas, setRespuestas] = useState<number[]>([]);
+  const [progreso, setProgreso] = useState(0);
   const [error, setError] = useState('');
+  const [desafiando, setDesafiando] = useState(false);
   const yaHoy = hechoHoy(tree.repaso);
 
   useEffect(() => {
@@ -46,25 +47,20 @@ export default function RepasoScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const p = preguntas[i];
-  const respondida = elegida !== null;
+  const materiaDe = (p: Pregunta) => tree.materias.get(p.materiaId)?.name ?? 'Repaso';
+  const aciertos = preguntas.filter((p, i) => respuestas[i] === p.ok).length;
 
-  function elegir(n: number) {
-    if (respondida) return;
-    setElegida(n);
-    setResultados((r) => [...r, { id: p.id, acierto: n === p.ok }]);
-  }
-
-  async function seguir() {
-    if (i < preguntas.length - 1) {
-      setI(i + 1);
-      setElegida(null);
-      return;
-    }
+  async function terminar(rs: number[]) {
+    setRespuestas(rs);
     setFase({ t: 'guardando' });
     try {
-      const racha = await terminarRepaso(tree, resultados);
+      const racha = await terminarRepaso(
+        tree,
+        preguntas.map((p, i) => ({ id: p.id, acierto: rs[i] === p.ok })),
+      );
       setFase({ t: 'fin', racha, nueva: !yaHoy });
+      // Puntos para la liga (si estás en una). Si falla, no corta nada.
+      sumarLiga(preguntas.filter((p, i) => rs[i] === p.ok).length, racha).catch(() => {});
       await reload();
     } catch (e) {
       setError(errorText(e));
@@ -72,26 +68,35 @@ export default function RepasoScreen() {
     }
   }
 
+  // Duelo: las mismas preguntas para un amigo, con un link.
+  async function desafiar() {
+    setDesafiando(true);
+    try {
+      const materias = [...new Set(preguntas.map(materiaDe))];
+      const materia = materias.length === 1 ? materias[0] : 'Repaso';
+      const id = await crearDuelo(materia, preguntas, respuestas);
+      const r = await compartir(`Te desafío en Mochi: ${preguntas.length} preguntas de ${materia}. Yo acerté ${aciertos}, ¿vos?`, linkDuelo(id));
+      if (r === 'copiado') toast('Link del duelo copiado: pegalo en WhatsApp');
+    } catch (e) {
+      toast(errorText(e));
+    } finally {
+      setDesafiando(false);
+    }
+  }
+
   const salir = () => go('/');
 
   return (
-    <div className="max-w-xl mx-auto px-4 sm:px-6 pb-12 safe-top min-h-[calc(100dvh-6rem)] flex flex-col">
-      <header className="pt-4 pb-4 flex items-center gap-3">
-        <IconButton label="Salir del repaso" onClick={salir}>
-          <Close />
-        </IconButton>
-        <div className="flex-1 h-3 rounded-full bg-sunken overflow-hidden">
-          <div
-            className="h-full bg-success rounded-full transition-[width] duration-500"
-            style={{ width: `${preguntas.length ? ((i + (respondida ? 1 : 0)) / preguntas.length) * 100 : 0}%` }}
-          />
-        </div>
+    <QuizShell
+      progreso={fase.t === 'fin' || fase.t === 'guardando' ? 1 : progreso}
+      salir={salir}
+      derecha={
         <span className="flex items-center gap-1 font-extrabold text-orange-500 tabular-nums" title="Días seguidos">
           <Flame size={20} fill="currentColor" />
           {rachaActual(tree.repaso)}
         </span>
-      </header>
-
+      }
+    >
       {fase.t === 'cargando' && (
         <Centro>
           <Spinner />
@@ -110,6 +115,9 @@ export default function RepasoScreen() {
           </p>
           <Button variant="primary" className="mt-6 w-full max-w-xs h-12" onClick={salir}>
             Volver
+          </Button>
+          <Button variant="ghost" className="mt-2" onClick={() => go('/liga')}>
+            Ver la liga
           </Button>
         </Centro>
       )}
@@ -132,51 +140,15 @@ export default function RepasoScreen() {
         </Centro>
       )}
 
-      {(fase.t === 'jugando' || fase.t === 'guardando') && p && (
-        <div className="flex-1 flex flex-col">
-          <p className="text-sm font-semibold text-muted">
-            {tree.materias.get(p.materiaId)?.name ?? 'Repaso'} · {i + 1} de {preguntas.length}
-          </p>
-          <h1 className="text-xl font-extrabold leading-snug mt-2 mb-5">{p.q}</h1>
-          <div className="space-y-2.5">
-            {p.opciones.map((o, n) => {
-              const estilo = !respondida
-                ? 'border-line bg-surface hover:border-accent active:scale-[0.99]'
-                : n === p.ok
-                  ? 'border-success bg-success/10'
-                  : n === elegida
-                    ? 'border-danger bg-danger/10'
-                    : 'border-line bg-surface opacity-50';
-              return (
-                <button
-                  key={n}
-                  onClick={() => elegir(n)}
-                  disabled={respondida}
-                  className={`w-full text-left rounded-2xl border-2 px-4 py-3.5 text-[16px] font-medium transition ${estilo}`}
-                >
-                  {o}
-                </button>
-              );
-            })}
-          </div>
-
-          {respondida && (
-            <div className={`mt-5 rounded-2xl p-4 fade-in ${elegida === p.ok ? 'bg-success/10' : 'bg-danger/10'}`}>
-              <p className={`font-extrabold ${elegida === p.ok ? 'text-success' : 'text-danger'}`}>
-                {elegida === p.ok ? '¡Bien!' : `La correcta era: ${p.opciones[p.ok]}`}
-              </p>
-              {p.por && <p className="text-[15px] mt-1">{p.por}</p>}
-              {p.fuente && <p className="text-xs text-muted mt-2">Sale de {baseName(p.fuente)}</p>}
-            </div>
-          )}
-          {error && <p className="text-danger mt-3 text-[15px]">{error}</p>}
-
-          <div className="mt-auto pt-6">
-            <Button variant="primary" className="w-full h-12" disabled={!respondida || fase.t === 'guardando'} onClick={seguir}>
-              {fase.t === 'guardando' ? 'Guardando…' : i < preguntas.length - 1 ? 'Seguir' : 'Terminar'}
-            </Button>
-          </div>
-        </div>
+      {(fase.t === 'jugando' || fase.t === 'guardando') && (
+        <QuizPreguntas
+          preguntas={preguntas}
+          etiqueta={(i) => materiaDe(preguntas[i])}
+          onProgreso={setProgreso}
+          onFin={terminar}
+          guardando={fase.t === 'guardando'}
+          error={error}
+        />
       )}
 
       {fase.t === 'fin' && (
@@ -187,18 +159,17 @@ export default function RepasoScreen() {
             {fase.racha === 1 ? (fase.nueva ? '¡Arrancaste tu racha!' : 'día de racha') : 'días seguidos'}
           </p>
           <p className="text-muted mt-3">
-            Acertaste {resultados.filter((r) => r.acierto).length} de {resultados.length}.{' '}
+            Acertaste {aciertos} de {preguntas.length}.{' '}
             {fase.nueva ? 'Volvé mañana para no perder la racha.' : 'La racha de hoy ya estaba sumada.'}
           </p>
           <Button variant="primary" className="mt-6 w-full max-w-xs h-12" onClick={salir}>
             Listo
           </Button>
+          <Button className="mt-2 w-full max-w-xs h-12" disabled={desafiando} onClick={desafiar}>
+            <Swords size={18} /> {desafiando ? 'Armando el duelo…' : 'Desafiar a un amigo'}
+          </Button>
         </Centro>
       )}
-    </div>
+    </QuizShell>
   );
-}
-
-function Centro({ children }: { children: React.ReactNode }) {
-  return <div className="flex-1 flex flex-col items-center justify-center text-center py-10">{children}</div>;
 }

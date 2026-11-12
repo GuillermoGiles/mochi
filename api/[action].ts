@@ -17,6 +17,7 @@ import {
 } from './_shared.js';
 import { authorize, corsPreflight, extToken, googleCallback, mcp, metadata, register, token } from './_mcp.js';
 import { avisos, clave, cron, cronRacha } from './_avisos.js';
+import { liga } from './_liga.js';
 
 // Pedidos previos de navegadores (CORS) para el conector de Claude.
 export const OPTIONS = () => corsPreflight();
@@ -303,6 +304,7 @@ export async function POST(req: Request) {
   if (action === 'oauth-token') return token(req);
   if (action === 'ext-token') return extToken(req);
   if (action === 'avisos') return avisos(req);
+  if (action === 'liga') return liga(req);
   if (action !== 'ia') return respond(404, { error: 'no_existe' });
 
   const session = await unseal(readCookie(req, SESSION));

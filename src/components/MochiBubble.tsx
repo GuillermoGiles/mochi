@@ -20,7 +20,7 @@ export default function MochiBubble({ route }: { route: Route }) {
   }, [open]);
 
   // En la pantalla del chat no hace falta; al abrir un archivo, el lector lo tapa.
-  if (route.name === 'ia' || route.name === 'repaso') return null;
+  if (route.name === 'ia' || route.name === 'repaso' || route.name === 'duelo') return null;
   // En una materia del celu ya está el botón + abajo a la derecha: Mochi va arriba.
   const place = route.name === 'materia' ? 'bottom-[10.5rem] lg:bottom-6' : 'bottom-24 md:bottom-6';
 

@@ -74,3 +74,14 @@ export async function googleToken(params: Record<string, string>) {
   });
   return { ok: r.ok, data: await r.json() };
 }
+
+// Base de datos chica (Redis de Upstash) por HTTP, para los avisos y la liga: Vercel crea estas variables al conectar la base de Upstash al proyecto.
+export async function redis(...cmd: (string | number)[]) {
+  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
+  if (!url || !token) throw new Error('Falta conectar la base de datos de los avisos (ver docs/CONFIGURACION.md)');
+  const r = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(cmd) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok || j.error) throw new Error(`Redis: ${j.error ?? r.status}`);
+  return j.result;
+}

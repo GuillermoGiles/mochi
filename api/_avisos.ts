@@ -8,7 +8,7 @@
 // La app manda las fechas cada vez que cambian; una tarea diaria (vercel.json → crons) manda los avisos.
 
 import webpush from 'web-push';
-import { SESSION, env, readCookie, respond, unseal } from './_shared.js';
+import { SESSION, env, readCookie, redis, respond, unseal } from './_shared.js';
 
 type Sub = { endpoint: string; keys: { p256dh: string; auth: string } };
 // t = título, m = materia, d = día (AAAA-MM-DD), e = es una entrega (si no, parcial o final).
@@ -18,17 +18,6 @@ type Racha = { n: number; u: string };
 type Guardado = { subs: Sub[]; eventos: Evento[]; racha?: Racha };
 
 const USERS = 'avisos';
-
-// Redis por HTTP: Vercel crea estas variables al conectar la base de Upstash al proyecto.
-async function redis(...cmd: (string | number)[]) {
-  const url = process.env.KV_REST_API_URL ?? process.env.UPSTASH_REDIS_REST_URL;
-  const token = process.env.KV_REST_API_TOKEN ?? process.env.UPSTASH_REDIS_REST_TOKEN;
-  if (!url || !token) throw new Error('Falta conectar la base de datos de los avisos (ver docs/CONFIGURACION.md)');
-  const r = await fetch(url, { method: 'POST', headers: { Authorization: `Bearer ${token}` }, body: JSON.stringify(cmd) });
-  const j = await r.json().catch(() => ({}));
-  if (!r.ok || j.error) throw new Error(`Redis: ${j.error ?? r.status}`);
-  return j.result;
-}
 
 async function userKey(email: string) {
   const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(`${env('SESSION_SECRET')}:${email.toLowerCase()}`));

@@ -16,6 +16,8 @@ import YoScreen from './screens/YoScreen';
 import ImportScreen from './screens/ImportScreen';
 import AsistenteScreen from './screens/AsistenteScreen';
 import RepasoScreen from './screens/RepasoScreen';
+import LigaScreen from './screens/LigaScreen';
+import DueloScreen from './screens/DueloScreen';
 import Login from './screens/Login';
 import MateriaScreen from './screens/MateriaScreen';
 import SearchScreen from './screens/SearchScreen';
@@ -114,7 +116,8 @@ export default function App() {
     );
 
   if (status === 'login') {
-    if (route.name === 'importar') {
+    // Links compartidos: después de entrar con Google se abren.
+    if (route.name === 'importar' || route.name === 'duelo' || (route.name === 'liga' && route.id)) {
       try {
         localStorage.setItem(PENDING, location.hash);
       } catch {}
@@ -155,6 +158,10 @@ export default function App() {
             <AsistenteScreen />
           ) : route.name === 'repaso' ? (
             <RepasoScreen />
+          ) : route.name === 'liga' ? (
+            <LigaScreen key={route.id ?? ''} codigo={route.id} />
+          ) : route.name === 'duelo' && route.id ? (
+            <DueloScreen key={route.id} id={route.id} />
           ) : route.name === 'importar' && route.id ? (
             <ImportScreen id={route.id} />
           ) : (
