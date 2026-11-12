@@ -109,7 +109,8 @@ const IA_LIMIT = 20; // preguntas por día y por persona con la clave compartida
 // Antes iba en una cookie aparte (que se podía borrar sola); se borra si todavía está.
 const OLD_IA_COOKIE = 'mochi_ia';
 // Se prueban en orden: si uno está saturado o sin cupo, se usa el siguiente.
-const IA_MODELS = ['gemini-flash-latest', 'gemini-2.5-flash', 'gemini-flash-lite-latest', 'gemini-2.5-flash-lite'];
+// gemini-flash-latest quedó segundo: en noviembre de 2026 se colgaba sin responder.
+const IA_MODELS = ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-flash-lite-latest'];
 
 const IA_SYSTEM = `Sos Mochi, el asistente de una app de apuntes de la facultad. Hablás en español rioplatense (vos), claro y breve.
 Ayudás a encontrar, entender y ordenar los apuntes del usuario, y a manejar sus fechas de parciales, entregas (TPs, actividades), notas y materias.
@@ -344,12 +345,23 @@ export async function POST(req: Request) {
   );
 
   let last = '';
+  // Vercel corta la función a los 60 s. Si un modelo se cuelga, se deja de esperarlo a tiempo para probar el siguiente.
+  const start = Date.now();
   for (const model of IA_MODELS) {
-    const r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: payload,
-    });
+    const queda = 55_000 - (Date.now() - start);
+    if (queda < 5_000) break;
+    let r: Response;
+    try {
+      r = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
+        body: payload,
+        signal: AbortSignal.timeout(Math.min(25_000, queda)),
+      });
+    } catch {
+      last = `${model}: no respondió a tiempo`;
+      continue;
+    }
     const data = await r.json().catch(() => ({}));
     if (r.ok) {
       if (!ownKey && isNew) use.n++;
@@ -362,9 +374,10 @@ export async function POST(req: Request) {
         cookies,
       );
     }
-    last = `${r.status} ${data.error?.status ?? ''}`;
-    // Saturado o sin cupo: se prueba el siguiente modelo. Otro error: se corta.
-    if (![429, 500, 503].includes(r.status)) break;
+    last = `${model}: ${r.status} ${data.error?.status ?? ''}`;
+    console.error('Gemini', last);
+    // Saturado, sin cupo o un modelo que Google ya retiró (404): se prueba el siguiente. Otro error: se corta.
+    if (![404, 429, 500, 503, 504].includes(r.status)) break;
   }
   return respond(502, { error: 'gemini', detalle: last });
 }
