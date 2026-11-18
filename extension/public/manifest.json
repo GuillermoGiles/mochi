@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Mochi · Guardar apunte",
   "short_name": "Mochi",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Guardá tus pizarras de Excalidraw y cualquier archivo directo en tus materias de Mochi.",
   "action": {
     "default_popup": "popup.html",

@@ -1,14 +1,16 @@
 :root {
-  --bg: #161618;
-  --surface: #1e1e21;
-  --sunken: #26262a;
-  --ink: #ededef;
-  --muted: #8f8f98;
-  --line: #2f2f34;
-  --accent: #e5484d;
-  --accent-hover: #ec5d5e;
-  --success: #3dd68c;
-  --danger: #ff9592;
+  /* Grafito: negro y grises, el blanco hace de acento. Igual que la app. */
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --sunken: #1a1a1a;
+  --ink: #fafafa;
+  --muted: #7a7a7a;
+  --line: #232323;
+  --accent: #fafafa;
+  --accent-hover: #e5e5e5;
+  --on-accent: #0a0a0a;
+  --success: #fafafa;
+  --danger: #ef5a5f;
   color-scheme: dark;
 }
 * {
@@ -44,8 +46,9 @@ body {
   min-width: 0;
 }
 .title {
-  font-weight: 700;
+  font-weight: 650;
   font-size: 16px;
+  letter-spacing: -0.02em;
 }
 .sub,
 .muted {
@@ -99,8 +102,9 @@ body {
 }
 .badge {
   display: inline-block;
-  background: var(--accent);
-  color: #fff;
+  background: var(--sunken);
+  border: 1px solid var(--line);
+  color: var(--ink);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
@@ -157,7 +161,7 @@ select:focus {
   border: 0;
   border-radius: 8px;
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font: inherit;
   font-weight: 650;
   cursor: pointer;
