@@ -156,7 +156,7 @@ export function ExamModal({ exam, materiaId, defaultDate, onClose }: { exam?: Ex
 
 function urgency(iso: string) {
   const n = daysUntil(iso);
-  return n <= 3 ? 'text-accent' : n <= 7 ? 'text-ink' : 'text-muted';
+  return n <= 3 ? 'text-urgent' : n <= 7 ? 'text-ink' : 'text-muted';
 }
 
 // Tarjetas "Próximas fechas" del inicio.

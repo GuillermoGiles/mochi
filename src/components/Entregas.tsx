@@ -19,7 +19,7 @@ export function dueLabel(e: Entrega) {
 export function dueColor(e: Entrega) {
   if (e.done) return 'text-muted';
   const n = daysUntil(e.date);
-  return n < 0 ? 'text-danger' : n <= 2 ? 'text-accent' : 'text-muted';
+  return n < 0 ? 'text-danger' : n <= 2 ? 'text-urgent' : 'text-muted';
 }
 
 // Marca o desmarca una entrega como entregada.

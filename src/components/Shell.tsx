@@ -101,7 +101,7 @@ function NavButton({
         )}
       </span>
       {item.label}
-      {dot && <span className="absolute top-2 right-[calc(50%-18px)] size-2.5 rounded-full bg-accent ring-2 ring-surface" />}
+      {dot && <span className="absolute top-2 right-[calc(50%-18px)] size-2.5 rounded-full bg-urgent ring-2 ring-surface" />}
     </button>
   );
 }

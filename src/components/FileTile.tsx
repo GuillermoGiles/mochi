@@ -146,7 +146,7 @@ export default function FileTile({
           aria-pressed={selected}
           className={`absolute top-2 right-2 size-7 rounded-full grid place-items-center border-2 transition ${
             selected
-              ? 'bg-accent border-accent text-white'
+              ? 'bg-accent border-accent text-on-accent'
               : `bg-surface/90 border-white/80 text-transparent shadow ${selecting ? '' : 'opacity-0 group-hover:opacity-100 [@media(hover:none)]:hidden'}`
           }`}
         >

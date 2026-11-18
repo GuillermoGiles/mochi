@@ -118,9 +118,8 @@ function IconPicker({ m }: { m: Materia }) {
             aria-label={label}
             onClick={() => pick(key === auto ? null : key)}
             className={`aspect-square rounded-xl grid place-items-center transition ${
-              key === current ? 'text-white' : 'bg-sunken text-muted hover:text-ink'
+              key === current ? 'bg-accent text-on-accent' : 'bg-sunken text-muted hover:text-ink'
             }`}
-            style={key === current ? { background: m.color } : undefined}
           >
             <Icon size={20} strokeWidth={2} />
           </button>

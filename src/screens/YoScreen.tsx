@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react';
-import { ChevronRight, Folder, Logout, Share, Sun } from '../components/icons';
+import { ChevronRight, Folder, Logout, Share } from '../components/icons';
 import { MateriaBadge } from '../components/MateriaCover';
 import { errorText, useToast } from '../components/ui';
 import { activarAvisos, avisosActivos, desactivarAvisos } from '../lib/avisos';
@@ -93,9 +93,8 @@ export default function YoScreen() {
         <div className="bg-surface border border-line rounded-3xl p-2 flex gap-1">
           {(
             [
-              ['auto', 'Automático'],
-              ['light', 'Claro'],
               ['dark', 'Oscuro'],
+              ['light', 'Claro'],
             ] as const
           ).map(([k, label]) => (
             <button
@@ -108,7 +107,6 @@ export default function YoScreen() {
                 theme === k ? 'bg-accent-soft text-accent' : 'text-muted hover:text-ink'
               }`}
             >
-              {k === 'auto' && <Sun width={16} height={16} />}
               {label}
             </button>
           ))}
@@ -168,7 +166,7 @@ function Avisos() {
           <span className="block text-sm text-muted">El día antes y el mismo día, a la mañana</span>
         </span>
         <span className={`w-12 h-7 rounded-full p-0.5 transition ${on ? 'bg-accent' : 'bg-line'}`}>
-          <span className={`block size-6 rounded-full bg-white shadow transition ${on ? 'translate-x-5' : ''}`} />
+          <span className={`block size-6 rounded-full shadow transition ${on ? 'bg-on-accent translate-x-5' : 'bg-white'}`} />
         </span>
       </button>
     </section>

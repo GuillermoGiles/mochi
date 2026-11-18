@@ -2,6 +2,7 @@
 
 @theme inline {
   --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --font-display: 'Inter Tight', 'Inter', ui-sans-serif, system-ui, sans-serif;
   /* Estética sobria: esquinas más chicas, títulos menos gruesos y sombras apenas visibles. */
   --radius-lg: 0.375rem;
   --radius-xl: 0.5rem;
@@ -25,55 +26,46 @@
   --color-accent-soft: var(--accent-soft);
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
+  --color-urgent: var(--urgent);
+  --color-urgent-soft: var(--urgent-soft);
   --color-success: var(--success);
 }
 
 :root {
+  /* Grafito: negro y grises neutros, el blanco hace de acento. Es el tema por defecto. */
+  --bg: #0a0a0a;
+  --surface: #141414;
+  --sunken: #1a1a1a;
+  --ink: #fafafa;
+  --muted: #7a7a7a;
+  --line: #232323;
+  --accent: #fafafa;
+  --accent-soft: #1f1f1f;
+  --on-accent: #0a0a0a;
+  --danger: #ef5a5f;
+  /* Rojo Mochi: solo para lo urgente (parciales y entregas que se vienen). */
+  --urgent: #ef5a5f;
+  --urgent-soft: rgb(239 90 95 / 0.14);
+  --success: #4ade80;
+  color-scheme: dark;
+}
+
+/* Claro (solo si lo elegís en "Vos"): el mismo monocromo, invertido. */
+:root[data-theme='light'] {
   --bg: #fafafa;
   --surface: #ffffff;
-  --sunken: #f4f4f5;
-  --ink: #18181b;
-  --muted: #71717a;
-  --line: #e4e4e7;
-  --accent: #e5484d;
-  --accent-soft: #feeceb;
-  --on-accent: #ffffff;
-  --danger: #ce2c31;
-  --success: #2b9a66;
+  --sunken: #f2f2f2;
+  --ink: #0a0a0a;
+  --muted: #737373;
+  --line: #e5e5e5;
+  --accent: #0a0a0a;
+  --accent-soft: #ececec;
+  --on-accent: #fafafa;
+  --danger: #d92d20;
+  --urgent: #e5484d;
+  --urgent-soft: #feeceb;
+  --success: #16a34a;
   color-scheme: light;
-}
-
-/* Oscuro: si el sistema lo pide (y no elegiste claro) o si lo elegiste a mano. */
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme='light']) {
-    --bg: #0f0f11;
-    --surface: #161618;
-    --sunken: #1e1e21;
-    --ink: #ededef;
-    --muted: #8f8f98;
-    --line: #2a2a2e;
-    --accent: #ec5d5e;
-    --accent-soft: #2b1617;
-    --on-accent: #ffffff;
-    --danger: #ff9592;
-    --success: #3dd68c;
-    color-scheme: dark;
-  }
-}
-
-:root[data-theme='dark'] {
-  --bg: #0f0f11;
-  --surface: #161618;
-  --sunken: #1e1e21;
-  --ink: #ededef;
-  --muted: #8f8f98;
-  --line: #2a2a2e;
-  --accent: #ec5d5e;
-  --accent-soft: #2b1617;
-  --on-accent: #ffffff;
-  --danger: #ff9592;
-  --success: #3dd68c;
-  color-scheme: dark;
 }
 
 html,
@@ -94,6 +86,18 @@ body {
 
 button {
   cursor: pointer;
+}
+
+/* Títulos más compactos, con Inter Tight. */
+h1,
+h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+}
+
+::selection {
+  background: var(--ink);
+  color: var(--bg);
 }
 
 /* Nada se desliza de costado: la página solo se mueve para arriba y para abajo. */

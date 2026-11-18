@@ -2,29 +2,29 @@ import { ICONS, iconKey } from '../lib/materiaIcon';
 
 type M = { name: string; color: string; icono?: string };
 
-// Portada: el color de la materia con su ícono, y una versión grande de fondo como decoración.
+// Portada monocroma: el ícono de la materia en un recuadro con borde, y una versión grande y tenue de fondo.
 export function MateriaCover({ m, className = '' }: { m: M; className?: string }) {
   const Icon = ICONS[iconKey(m)].icon;
   return (
-    <div className={`relative overflow-hidden ${className}`} style={{ background: m.color }} aria-hidden>
-      <Icon className="absolute -right-4 -bottom-6 text-white/15 rotate-[-12deg]" size={110} strokeWidth={1.5} />
-      <span className="absolute left-4 bottom-3 size-10 rounded-xl bg-white/20 grid place-items-center">
-        <Icon className="text-white" size={22} strokeWidth={2.2} />
+    <div className={`relative overflow-hidden bg-sunken border-b border-line ${className}`} aria-hidden>
+      <Icon className="absolute -right-4 -bottom-6 text-ink/[0.06] rotate-[-12deg]" size={110} strokeWidth={1.5} />
+      <span className="absolute left-3.5 bottom-3 size-9 rounded-lg border border-line bg-surface grid place-items-center text-ink">
+        <Icon size={18} strokeWidth={1.8} />
       </span>
     </div>
   );
 }
 
-// Ícono chico con el color de la materia (para listas y encabezados).
+// Ícono chico de la materia (para listas y encabezados).
 export function MateriaBadge({ m, size = 36, className = '' }: { m: M; size?: number; className?: string }) {
   const Icon = ICONS[iconKey(m)].icon;
   return (
     <span
-      className={`grid place-items-center shrink-0 text-white ${className}`}
-      style={{ background: m.color, width: size, height: size, borderRadius: size * 0.3 }}
+      className={`grid place-items-center shrink-0 bg-sunken border border-line text-ink ${className}`}
+      style={{ width: size, height: size, borderRadius: size * 0.28 }}
       aria-hidden
     >
-      <Icon size={Math.round(size * 0.55)} strokeWidth={2.2} />
+      <Icon size={Math.round(size * 0.5)} strokeWidth={1.8} />
     </span>
   );
 }

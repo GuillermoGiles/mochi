@@ -120,7 +120,7 @@ function ExamRow({ exam: e, onOpen }: { exam: Exam; onOpen: (e: Exam) => void })
   return (
     <div className={`flex items-center gap-3 px-4 py-3 ${pasada ? 'opacity-60' : ''}`}>
       <button onClick={() => onOpen(e)} className="flex-1 min-w-0 flex items-center gap-4 text-left">
-        <div className={`w-16 shrink-0 text-center ${n >= 0 && n <= 3 ? 'text-accent' : ''}`}>
+        <div className={`w-16 shrink-0 text-center ${n >= 0 && n <= 3 ? 'text-urgent' : ''}`}>
           {pasada ? (
             <div className="text-sm font-semibold text-muted">Ya pasó</div>
           ) : (

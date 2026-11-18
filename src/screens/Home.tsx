@@ -300,7 +300,7 @@ function MateriaCard({ m, year }: { m: Materia; year?: Year }) {
         {year && <span className="text-xs font-semibold text-muted mb-0.5">{year.name}</span>}
         <span className="font-bold leading-snug line-clamp-2">{m.name}</span>
         {next && (
-          <span className={`mt-auto pt-2 text-xs font-semibold truncate ${n !== null && n <= 3 ? 'text-accent' : 'text-muted'}`}>
+          <span className={`mt-auto pt-2 text-xs font-semibold truncate ${n !== null && n <= 3 ? 'text-urgent' : 'text-muted'}`}>
             {next.title} · {whenLabel(next.date).toLowerCase()}
           </span>
         )}
@@ -434,7 +434,7 @@ function Approved() {
               onClick={() => go(`/m/${m.id}`)}
               className="h-11 pl-2 pr-4 rounded-full bg-surface border border-line flex items-center gap-2 text-[15px] font-semibold hover:bg-sunken"
             >
-              <span className="size-7 rounded-full grid place-items-center text-white" style={{ background: m.color }}>
+              <span className="size-7 rounded-full grid place-items-center bg-accent text-on-accent">
                 <Check width={16} height={16} />
               </span>
               {m.name}

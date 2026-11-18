@@ -16,7 +16,7 @@ type BtnProps = ButtonHTMLAttributes<HTMLButtonElement> & { variant?: 'primary' 
 
 export function Button({ variant = 'soft', className = '', ...p }: BtnProps) {
   const styles = {
-    primary: 'bg-accent text-on-accent hover:brightness-110',
+    primary: 'bg-accent text-on-accent hover:opacity-90',
     soft: 'bg-surface text-ink border border-line hover:bg-sunken',
     ghost: 'text-ink hover:bg-sunken',
     danger: 'bg-danger text-white hover:brightness-110',
@@ -271,7 +271,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
                   setMsg(null);
                   msg.action!.onClick();
                 }}
-                className="h-9 px-3 rounded-xl font-semibold text-accent hover:bg-white/10 whitespace-nowrap"
+                className="h-9 px-3 rounded-xl font-semibold text-bg underline underline-offset-2 hover:bg-bg/10 whitespace-nowrap"
               >
                 {msg.action.label}
               </button>
