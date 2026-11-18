@@ -91,7 +91,7 @@ export default function LigaScreen({ codigo }: { codigo?: string }) {
 
       {liga === null && (
         <section className="bg-surface border border-line rounded-3xl p-6 text-center">
-          <Trophy size={48} className="mx-auto text-amber-500" />
+          <Trophy size={48} className="mx-auto text-ink" />
           <p className="text-lg font-extrabold mt-3">Competí con tus compañeros</p>
           <p className="text-muted mt-1">
             Armá una liga y pasales el link. Cada repaso del día suma puntos, y a fin de mes el que más sumó se lleva una medalla.
@@ -107,7 +107,7 @@ export default function LigaScreen({ codigo }: { codigo?: string }) {
         <>
           {liga.ganadorAnterior && (
             <p className="text-sm text-muted mb-3 flex items-center gap-1.5">
-              <Medal size={16} className="text-amber-500" /> El mes pasado ganó <b className="text-ink">{liga.ganadorAnterior.n}</b> con{' '}
+              <Medal size={16} className="text-ink" /> El mes pasado ganó <b className="text-ink">{liga.ganadorAnterior.n}</b> con{' '}
               {liga.ganadorAnterior.p} puntos.
             </p>
           )}
@@ -168,7 +168,7 @@ export default function LigaScreen({ codigo }: { codigo?: string }) {
 }
 
 function Fila({ m, pos }: { m: MiembroLiga; pos: number }) {
-  const podio = ['text-amber-500', 'text-slate-400', 'text-orange-700'][pos - 1];
+  const podio = ['text-ink', 'text-ink/70', 'text-muted'][pos - 1];
   return (
     <li className={`flex items-center gap-3 px-4 py-3 ${m.yo ? 'bg-accent-soft' : ''}`}>
       <span className={`w-6 text-center font-extrabold tabular-nums ${m.puntos > 0 && podio ? podio : 'text-muted'}`}>{pos}</span>
@@ -179,11 +179,11 @@ function Fila({ m, pos }: { m: MiembroLiga; pos: number }) {
           {m.yo && <span className="text-muted font-normal"> (vos)</span>}
         </span>
         <span className="flex items-center gap-2 text-sm text-muted">
-          <span className={`flex items-center gap-0.5 ${m.racha > 0 ? 'text-orange-500' : ''}`}>
+          <span className={`flex items-center gap-0.5 ${m.racha > 0 ? 'text-ink' : ''}`}>
             <Flame size={14} fill={m.racha > 0 ? 'currentColor' : 'none'} /> {m.racha}
           </span>
           {m.medallas > 0 && (
-            <span className="flex items-center gap-0.5 text-amber-500">
+            <span className="flex items-center gap-0.5 text-ink">
               <Medal size={14} /> {m.medallas}
             </span>
           )}
@@ -258,7 +258,7 @@ function Invitacion({ codigo, actual, onUnido }: { codigo: string; actual: Liga 
         <Spinner />
       ) : (
         <>
-          <Trophy size={56} className="text-amber-500" />
+          <Trophy size={56} className="text-ink" />
           <p className="text-sm text-muted mt-4">Te invitaron a la liga</p>
           <h1 className="text-2xl font-extrabold mt-1">{previa.nombre}</h1>
           <p className="text-muted mt-1">

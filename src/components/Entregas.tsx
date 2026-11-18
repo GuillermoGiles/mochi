@@ -57,7 +57,7 @@ export function DoneCheck({ e, onToggled }: { e: Entrega; onToggled?: () => void
     >
       <span
         className={`size-7 rounded-full border-2 grid place-items-center transition ${
-          done ? 'bg-success border-success text-white' : 'border-line group-hover:border-success'
+          done ? 'bg-success border-success text-on-accent' : 'border-line group-hover:border-success'
         }`}
       >
         {done && <Check width={16} height={16} />}

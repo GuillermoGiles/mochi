@@ -466,7 +466,7 @@ function NewMateria({ year, prefill, onClose }: { year: Year; prefill?: Group; o
   const toast = useToast();
   const used = tree.materias.size;
   const [name, setName] = useState(prefill?.name ?? '');
-  const [color, setColor] = useState(COLORS[used % COLORS.length]);
+  const color = COLORS[used % COLORS.length];
   const [busy, setBusy] = useState(false);
   // Contenido de una carpeta de la compu para importar como materia.
   const [items, setItems] = useState<UploadItem[] | null>(prefill?.items ?? null);
@@ -563,19 +563,6 @@ function NewMateria({ year, prefill, onClose }: { year: Year; prefill?: Group; o
           placeholder="Ej: Análisis Matemático I"
           className="w-full h-12 px-4 rounded-xl bg-sunken border border-transparent focus:border-accent outline-none text-base"
         />
-        <p className="text-sm text-muted mt-4 mb-2">Color</p>
-        <div className="flex gap-2 flex-wrap">
-          {COLORS.map((c) => (
-            <button
-              type="button"
-              key={c}
-              onClick={() => setColor(c)}
-              aria-label={`Color ${c}`}
-              className={`size-9 rounded-full transition ${color === c ? 'ring-2 ring-offset-2 ring-offset-surface ring-ink' : ''}`}
-              style={{ background: c }}
-            />
-          ))}
-        </div>
         <Button variant="primary" className="w-full mt-5" disabled={busy || !name.trim()}>
           {busy ? 'Creando…' : info ? 'Crear e importar' : 'Crear materia'}
         </Button>

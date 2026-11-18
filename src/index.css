@@ -46,7 +46,7 @@
   /* Rojo Mochi: solo para lo urgente (parciales y entregas que se vienen). */
   --urgent: #ef5a5f;
   --urgent-soft: rgb(239 90 95 / 0.14);
-  --success: #4ade80;
+  --success: #fafafa;
   color-scheme: dark;
 }
 
@@ -64,7 +64,7 @@
   --danger: #d92d20;
   --urgent: #e5484d;
   --urgent-soft: #feeceb;
-  --success: #16a34a;
+  --success: #0a0a0a;
   color-scheme: light;
 }
 

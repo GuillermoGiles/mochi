@@ -91,7 +91,7 @@ export default function RepasoScreen() {
       progreso={fase.t === 'fin' || fase.t === 'guardando' ? 1 : progreso}
       salir={salir}
       derecha={
-        <span className="flex items-center gap-1 font-extrabold text-orange-500 tabular-nums" title="Días seguidos">
+        <span className="flex items-center gap-1 font-extrabold text-ink tabular-nums" title="Días seguidos">
           <Flame size={20} fill="currentColor" />
           {rachaActual(tree.repaso)}
         </span>
@@ -107,7 +107,7 @@ export default function RepasoScreen() {
 
       {fase.t === 'hecho' && (
         <Centro>
-          <Flame size={80} className="text-orange-500" fill="currentColor" />
+          <Flame size={80} className="text-ink" fill="currentColor" />
           <p className="text-xl font-extrabold mt-3">Ya repasaste hoy</p>
           <p className="text-muted mt-1 max-w-xs">
             {rachaActual(tree.repaso) === 1 ? 'Llevás 1 día de racha.' : `Llevás ${rachaActual(tree.repaso)} días seguidos.`} Mañana te esperan las
@@ -153,8 +153,8 @@ export default function RepasoScreen() {
 
       {fase.t === 'fin' && (
         <Centro>
-          <Flame size={96} className="text-orange-500 racha-pop" fill="currentColor" />
-          <p className="text-5xl font-extrabold text-orange-500 mt-2 tabular-nums">{fase.racha}</p>
+          <Flame size={96} className="text-ink racha-pop" fill="currentColor" />
+          <p className="text-5xl font-extrabold text-ink mt-2 tabular-nums">{fase.racha}</p>
           <p className="text-xl font-extrabold mt-1">
             {fase.racha === 1 ? (fase.nueva ? '¡Arrancaste tu racha!' : 'día de racha') : 'días seguidos'}
           </p>

@@ -17,7 +17,7 @@ export function LigaLink() {
   const pos = liga ? liga.miembros.findIndex((m) => m.yo) + 1 : 0;
   return (
     <button onClick={() => go('/liga')} className="mt-2 w-full flex items-center gap-2 px-4 h-11 rounded-2xl text-[15px] text-left hover:bg-sunken transition">
-      <Trophy size={18} className="text-amber-500 shrink-0" />
+      <Trophy size={18} className="text-ink shrink-0" />
       <span className="flex-1 min-w-0 truncate">
         {liga && pos ? (
           <>
@@ -49,10 +49,10 @@ export default function RachaCard() {
     <Tag
       onClick={hecho ? undefined : () => go('/repaso')}
       className={`mt-4 w-full flex items-center gap-4 rounded-3xl border p-4 text-left transition ${hecho ? '' : 'hover:border-accent'} ${
-        peligro ? 'border-orange-400 bg-orange-500/10' : 'border-line bg-surface'
+        peligro ? 'border-urgent bg-urgent-soft' : 'border-line bg-surface'
       }`}
     >
-      <span className={`flex flex-col items-center shrink-0 w-12 ${racha > 0 ? 'text-orange-500' : 'text-muted'}`}>
+      <span className={`flex flex-col items-center shrink-0 w-12 ${racha > 0 ? (peligro ? 'text-urgent' : 'text-ink') : 'text-muted'}`}>
         <Flame size={30} fill={racha > 0 ? 'currentColor' : 'none'} />
         <span className="text-lg font-extrabold leading-none mt-0.5 tabular-nums">{racha}</span>
       </span>

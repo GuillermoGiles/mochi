@@ -28,11 +28,11 @@ function StatusIcon({ s }: { s: Status }) {
   const base = 'size-7 rounded-full grid place-items-center shrink-0';
   if (s === 'aprobada')
     return (
-      <span className={`${base} bg-success text-white`}>
+      <span className={`${base} bg-success text-on-accent`}>
         <Check size={16} strokeWidth={3} />
       </span>
     );
-  if (s === 'final') return <span className={`${base} border-2 border-amber-500 text-amber-500 text-xs font-extrabold`}>R</span>;
+  if (s === 'final') return <span className={`${base} border-2 border-muted text-muted text-xs font-extrabold`}>R</span>;
   if (s === 'cursando')
     return (
       <span className={`${base} border-2 border-accent`}>
@@ -94,7 +94,7 @@ export default function CarreraScreen() {
         <span className={`flex-1 min-w-0 truncate ${s === 'bloqueada' ? 'text-muted' : 'font-semibold'}`}>{r.name}</span>
         <span
           className={`text-sm shrink-0 ${
-            s === 'aprobada' ? 'text-success font-bold' : s === 'final' ? 'text-amber-500 font-semibold' : s === 'cursando' || (s === 'libre' && !r.electiva) ? 'text-accent font-semibold' : 'text-muted'
+            s === 'aprobada' ? 'text-success font-bold' : s === 'final' ? 'text-muted font-semibold' : s === 'cursando' || (s === 'libre' && !r.electiva) ? 'text-accent font-semibold' : 'text-muted'
           }`}
         >
           {s === 'aprobada' && r.nota !== undefined ? fmtNota(r.nota) : r.electiva && !r.state ? `${r.horas} hs` : LABEL[s]}
@@ -370,7 +370,7 @@ function PlanModal({ row, byCode, onClose }: { row: PlanRow; byCode: Map<string,
               const ok = need === 'regular' ? r.state === 'final' || r.state === 'aprobada' : r.state === 'aprobada';
               return (
                 <li key={need + r.code} className="flex items-center gap-2 text-[15px]">
-                  <span className={`size-5 rounded-full grid place-items-center shrink-0 ${ok ? 'bg-success text-white' : 'bg-sunken text-muted'}`}>
+                  <span className={`size-5 rounded-full grid place-items-center shrink-0 ${ok ? 'bg-success text-on-accent' : 'bg-sunken text-muted'}`}>
                     {ok ? <Check size={12} strokeWidth={3} /> : <Lock size={10} />}
                   </span>
                   <span className={`flex-1 min-w-0 truncate ${ok ? 'text-muted' : ''}`}>{r.name}</span>

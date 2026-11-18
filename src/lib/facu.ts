@@ -106,7 +106,8 @@ function buildTree(all: DFile[], root: DFile, datos: Datos): Tree {
     const m: Materia = {
       id: f.id,
       name: f.name,
-      color: f.appProperties.color ?? COLORS[0],
+      // Grafito: todas las materias se muestran con el mismo gris; el color guardado queda en Drive sin usarse.
+      color: 'var(--muted)',
       yearId: year.id,
       estado: (['cursando', 'final', 'aprobada'] as const).find((e) => e === f.appProperties!.estado),
       aprobada: f.appProperties.estado === 'aprobada',

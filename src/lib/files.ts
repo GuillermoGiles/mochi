@@ -1,13 +1,13 @@
 export type Kind = 'pdf' | 'word' | 'excel' | 'image' | 'excalidraw' | 'slides' | 'other';
 
 export const KIND_STYLE: Record<Kind, { label: string; color: string }> = {
-  pdf: { label: 'PDF', color: '#e03131' },
-  word: { label: 'DOC', color: '#1c7ed6' },
-  excel: { label: 'XLS', color: '#2f9e44' },
-  image: { label: 'IMG', color: '#ae3ec9' },
-  excalidraw: { label: 'DIB', color: '#6741d9' },
-  slides: { label: 'PPT', color: '#e8590c' },
-  other: { label: 'ARCH', color: '#868e96' },
+  pdf: { label: 'PDF', color: 'var(--muted)' },
+  word: { label: 'DOC', color: 'var(--muted)' },
+  excel: { label: 'XLS', color: 'var(--muted)' },
+  image: { label: 'IMG', color: 'var(--muted)' },
+  excalidraw: { label: 'DIB', color: 'var(--muted)' },
+  slides: { label: 'PPT', color: 'var(--muted)' },
+  other: { label: 'ARCH', color: 'var(--muted)' },
 };
 
 export function extOf(name: string) {
