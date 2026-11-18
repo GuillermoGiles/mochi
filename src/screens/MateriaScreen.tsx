@@ -777,7 +777,7 @@ export default function MateriaScreen({ id, folderId }: { id: string; folderId?:
       <div className="lg:flex">
         {/* Compu: barra lateral con la materia y sus carpetas */}
         <aside className="hidden lg:flex flex-col w-72 shrink-0 h-dvh sticky top-0 overflow-y-auto border-r border-line px-4 py-5 gap-5">
-          <button onClick={() => go('/')} className="flex items-center gap-1 text-sm font-semibold text-muted hover:text-ink -ml-1">
+          <button onClick={() => go('/')} className="tap flex items-center gap-1 text-sm font-semibold text-muted hover:text-ink -ml-1">
             <Back width={18} height={18} /> Inicio
           </button>
           <DropTarget onFile={(d, copy) => moveTo(d, m.id, m.name, copy)}>
@@ -829,7 +829,7 @@ export default function MateriaScreen({ id, folderId }: { id: string; folderId?:
               {searchOpen ? (
                 <div className="flex-1 min-w-0">{searchBox(true)}</div>
               ) : (
-                <button onClick={() => openFolder()} className="flex-1 min-w-0 flex items-center gap-2 text-left">
+                <button onClick={() => openFolder()} className="tap flex-1 min-w-0 flex items-center gap-2 text-left">
                   <MateriaBadge m={m} size={28} />
                   <span className="font-bold text-[17px] truncate">{m.name}</span>
                 </button>

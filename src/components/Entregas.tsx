@@ -1,3 +1,4 @@
+import { MateriaGlyph } from './MateriaCover';
 import { useState } from 'react';
 import { useFacu } from '../lib/context';
 import { calendarLink, dateLabel, daysUntil, toISO, updateDatos, type Entrega } from '../lib/datos';
@@ -235,7 +236,7 @@ export function EntregaRow({ e, showMateria = true, onEdit }: { e: Entrega; show
         {e.desc && <div className="text-sm text-muted truncate">{e.desc}</div>}
         {showMateria && m && (
           <div className="flex items-center gap-1.5 text-sm text-muted min-w-0 mt-0.5">
-            <span className="size-2.5 rounded-full shrink-0" style={{ background: m.color }} />
+            <MateriaGlyph m={m} />
             <span className="truncate">{m.name}</span>
           </div>
         )}
@@ -258,7 +259,7 @@ export function NextEntregas() {
     <section className="mt-9">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold">Para entregar</h2>
-        <button onClick={() => go('/entregas')} className="flex items-center gap-1 text-sm font-semibold text-muted hover:text-ink">
+        <button onClick={() => go('/entregas')} className="tap flex items-center gap-1 text-sm font-semibold text-muted hover:text-ink">
           Ver todas <ChevronRight width={16} height={16} />
         </button>
       </div>

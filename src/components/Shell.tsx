@@ -52,7 +52,7 @@ export default function Shell({ route, children }: { route: Route; children: Rea
         ))}
       </nav>
 
-      <div key={active} className="fade-in pb-24 md:pb-0">
+      <div key={active} className="fade-in pb-40 md:pb-24">
         {children}
       </div>
 

@@ -1,3 +1,4 @@
+import { MateriaGlyph } from '../components/MateriaCover';
 import { useState } from 'react';
 import { EntregaModal, EntregaRow } from '../components/Entregas';
 import { ChevronRight, Plus } from '../components/icons';
@@ -52,7 +53,7 @@ export default function EntregasScreen() {
                 filter === (m?.id ?? null) ? 'bg-accent-soft border-accent' : 'border-line hover:bg-sunken'
               }`}
             >
-              {m && <span className="size-2.5 rounded-full" style={{ background: m.color }} />}
+              {m && <MateriaGlyph m={m} />}
               {m?.name ?? 'Todas'}
             </button>
           ))}
@@ -90,7 +91,7 @@ export default function EntregasScreen() {
               <button
                 onClick={() => setShowDone(!showDone)}
                 aria-expanded={showDone}
-                className="flex items-center gap-1.5 text-sm font-bold text-muted hover:text-ink mb-2"
+                className="tap flex items-center gap-1.5 text-sm font-bold text-muted hover:text-ink mb-2"
               >
                 <ChevronRight width={16} height={16} className={`transition ${showDone ? 'rotate-90' : ''}`} />
                 Entregadas ({done.length})

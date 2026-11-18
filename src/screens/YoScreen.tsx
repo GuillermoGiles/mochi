@@ -199,7 +199,7 @@ function GeminiKey() {
           <>
             <p className="text-[15px] text-muted">
               Con la clave de Mochi tenés unas preguntas por día. Si querés más, creá tu propia clave gratis en{' '}
-              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="text-accent font-semibold underline">
+              <a href="https://aistudio.google.com/apikey" target="_blank" rel="noreferrer" className="tap text-accent font-semibold underline">
                 Google AI Studio
               </a>{' '}
               y pegala acá. Se guarda solo en este dispositivo.

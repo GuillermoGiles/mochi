@@ -99,7 +99,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-3">
           <h2 className="text-lg font-bold">Cursando ahora</h2>
           {cursando.length > 0 && (
-            <button onClick={() => setPicking(true)} className="text-sm font-semibold text-muted hover:text-ink">
+            <button onClick={() => setPicking(true)} className="tap text-sm font-semibold text-muted hover:text-ink">
               Cambiar
             </button>
           )}
@@ -136,7 +136,7 @@ export default function Home() {
       )}
 
       <section className="mt-9">
-        <button onClick={() => setAllOpen(!allOpen)} className="flex items-center gap-2 text-lg font-bold" aria-expanded={allOpen}>
+        <button onClick={() => setAllOpen(!allOpen)} className="tap flex items-center gap-2 text-lg font-bold" aria-expanded={allOpen}>
           <ChevronRight width={20} height={20} className={`transition ${allOpen ? 'rotate-90' : ''}`} />
           Todas las materias
           <span className="text-sm font-semibold text-muted bg-sunken rounded-full px-2 py-0.5">
@@ -421,7 +421,7 @@ function Approved() {
   };
   return (
     <section className="mt-10">
-      <button onClick={toggle} className="flex items-center gap-2 text-lg font-bold" aria-expanded={open}>
+      <button onClick={toggle} className="tap flex items-center gap-2 text-lg font-bold" aria-expanded={open}>
         <ChevronRight width={20} height={20} className={`transition ${open ? 'rotate-90' : ''}`} />
         Aprobadas
         <span className="text-sm font-semibold text-muted bg-sunken rounded-full px-2 py-0.5">{list.length}</span>
@@ -538,7 +538,7 @@ function NewMateria({ year, prefill, onClose }: { year: Year; prefill?: Group; o
               Se van a importar <b>{info.files} archivos</b>
               {info.folders > 0 && ` en ${info.folders} carpetas`}.
             </p>
-            <button type="button" onClick={() => setItems(null)} className="text-sm font-semibold text-muted hover:text-ink">
+            <button type="button" onClick={() => setItems(null)} className="tap text-sm font-semibold text-muted hover:text-ink">
               Quitar
             </button>
           </div>

@@ -12,6 +12,21 @@ export default function MochiBubble({ route }: { route: Route }) {
   // En la compu el chat es un cuadro al costado y se puede seguir usando la página: solo se bloquea en el celu.
   useLockScroll(open && matchMedia('(max-width: 767px)').matches);
 
+  // En el celu se esconde al bajar (para no tapar lo que estás leyendo) y vuelve al subir.
+  const [hidden, setHidden] = useState(false);
+  useEffect(() => {
+    let last = scrollY;
+    const onScroll = () => {
+      const y = scrollY;
+      if (Math.abs(y - last) < 8) return;
+      setHidden(y > last && y > 80);
+      last = y;
+    };
+    addEventListener('scroll', onScroll, { passive: true });
+    return () => removeEventListener('scroll', onScroll);
+  }, []);
+  useEffect(() => setHidden(false), [route.name, route.id]);
+
   useEffect(() => {
     if (!open) return;
     const k = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
@@ -34,7 +49,9 @@ export default function MochiBubble({ route }: { route: Route }) {
           }}
           aria-label="Preguntale a Mochi"
           title="Preguntale a Mochi"
-          className={`fixed right-4 md:right-6 ${place} z-40 size-14 rounded-full bg-accent text-on-accent shadow-lg grid place-items-center hover:scale-105 active:scale-95 transition`}
+          className={`fixed right-4 md:right-6 ${place} z-40 size-14 rounded-full bg-accent text-on-accent shadow-lg grid place-items-center hover:scale-105 active:scale-95 transition duration-200 ${
+            hidden ? 'max-md:translate-y-24 max-md:opacity-0 max-md:pointer-events-none' : ''
+          }`}
         >
           <Sparkles size={24} />
         </button>

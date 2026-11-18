@@ -15,6 +15,12 @@ export function MateriaCover({ m, className = '' }: { m: M; className?: string }
   );
 }
 
+// Solo el ícono de la materia, del tamaño del texto (para listas).
+export function MateriaGlyph({ m, size = 14, className = '' }: { m: M; size?: number; className?: string }) {
+  const Icon = ICONS[iconKey(m)].icon;
+  return <Icon size={size} strokeWidth={2} className={`shrink-0 ${className}`} aria-hidden />;
+}
+
 // Ícono chico de la materia (para listas y encabezados).
 export function MateriaBadge({ m, size = 36, className = '' }: { m: M; size?: number; className?: string }) {
   const Icon = ICONS[iconKey(m)].icon;

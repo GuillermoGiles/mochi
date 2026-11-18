@@ -1,3 +1,4 @@
+import { MateriaGlyph } from './MateriaCover';
 import { useState } from 'react';
 import { useFacu } from '../lib/context';
 import { calendarLink, dateLabel, daysUntil, toISO, updateDatos, whenLabel, type Exam } from '../lib/datos';
@@ -169,7 +170,7 @@ export function UpcomingExams() {
     <section className="mt-8">
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-lg font-bold">Próximas fechas</h2>
-        <button onClick={() => setEditing('new')} className="flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
+        <button onClick={() => setEditing('new')} className="tap flex items-center gap-1.5 text-sm font-semibold text-muted hover:text-ink">
           <Plus /> Agregar fecha
         </button>
       </div>
@@ -193,7 +194,7 @@ export function UpcomingExams() {
                 <div className={`text-xl font-extrabold ${urgency(e.date)}`}>{whenLabel(e.date)}</div>
                 <div className="font-semibold mt-1 truncate">{e.title}</div>
                 <div className="flex items-center gap-1.5 text-sm text-muted mt-0.5 min-w-0">
-                  <span className="size-2.5 rounded-full shrink-0" style={{ background: m.color }} />
+                  <MateriaGlyph m={m} />
                   <span className="truncate">{m.name}</span>
                 </div>
                 <div className="text-xs text-muted mt-2 capitalize">{dateLabel(e.date)}</div>

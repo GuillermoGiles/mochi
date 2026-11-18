@@ -158,7 +158,7 @@ export default function CarreraScreen() {
             <button
               onClick={() => setOpenLevels({ ...openLevels, [i]: !open })}
               aria-expanded={open}
-              className="w-full flex items-center gap-2 mb-2 text-left"
+              className="tap w-full flex items-center gap-2 mb-2 text-left"
             >
               <ChevronRight width={16} height={16} className={`text-muted transition ${open ? 'rotate-90' : ''}`} />
               <h2 className="text-sm font-bold text-muted flex-1">{label}</h2>
@@ -183,7 +183,7 @@ export default function CarreraScreen() {
             <button
               onClick={() => setOpenLevels({ ...openLevels, [key]: !open })}
               aria-expanded={open}
-              className="w-full flex items-center gap-2 mb-1 text-left"
+              className="tap w-full flex items-center gap-2 mb-1 text-left"
             >
               <ChevronRight width={16} height={16} className={`text-muted transition ${open ? 'rotate-90' : ''}`} />
               <h2 className="text-sm font-bold text-muted flex-1">{nivel ? `Electivas de ${NIVELES[nivel - 1].toLowerCase()}` : 'Electivas'}</h2>
@@ -274,7 +274,7 @@ function Simulador() {
 
       {anios > 0 && (
         <>
-          <button onClick={() => setOpen(!open)} aria-expanded={open} className="flex items-center gap-1 mt-4 text-sm font-semibold text-accent">
+          <button onClick={() => setOpen(!open)} aria-expanded={open} className="tap flex items-center gap-1 mt-4 text-sm font-semibold text-accent">
             <ChevronRight width={16} height={16} className={`transition ${open ? 'rotate-90' : ''}`} />
             {open ? 'Ocultar' : 'Ver'} qué cursarías cada año
           </button>

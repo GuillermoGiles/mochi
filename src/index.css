@@ -34,13 +34,13 @@
 :root {
   /* Grafito: negro y grises neutros, el blanco hace de acento. Es el tema por defecto. */
   --bg: #0a0a0a;
-  --surface: #141414;
-  --sunken: #1a1a1a;
+  --surface: #161616;
+  --sunken: #1d1d1d;
   --ink: #fafafa;
-  --muted: #7a7a7a;
-  --line: #232323;
+  --muted: #8a8a8a;
+  --line: #2e2e2e;
   --accent: #fafafa;
-  --accent-soft: #1f1f1f;
+  --accent-soft: #232323;
   --on-accent: #0a0a0a;
   --danger: #ef5a5f;
   /* Rojo Mochi: solo para lo urgente (parciales y entregas que se vienen). */
@@ -56,13 +56,13 @@
   --surface: #ffffff;
   --sunken: #f2f2f2;
   --ink: #0a0a0a;
-  --muted: #737373;
-  --line: #e5e5e5;
+  --muted: #6b6b6b;
+  --line: #dcdcdc;
   --accent: #0a0a0a;
   --accent-soft: #ececec;
   --on-accent: #fafafa;
-  --danger: #d92d20;
-  --urgent: #e5484d;
+  --danger: #c8262c;
+  --urgent: #c8262c;
   --urgent-soft: #feeceb;
   --success: #0a0a0a;
   color-scheme: light;
@@ -115,6 +115,16 @@ input[type='date'] {
 }
 input[type='date']::-webkit-date-and-time-value {
   text-align: left;
+}
+
+/* Botones de texto chicos: el área que se puede tocar es más grande que lo que se ve. */
+.tap {
+  position: relative;
+}
+.tap::after {
+  content: '';
+  position: absolute;
+  inset: -12px -8px;
 }
 
 .safe-top {

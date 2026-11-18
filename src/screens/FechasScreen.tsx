@@ -1,3 +1,4 @@
+import { MateriaGlyph } from '../components/MateriaCover';
 import { useState } from 'react';
 import { ExamModal } from '../components/Exams';
 import { Calendar, ChevronLeft, ChevronRight, Plus } from '../components/icons';
@@ -136,7 +137,7 @@ function ExamRow({ exam: e, onOpen }: { exam: Exam; onOpen: (e: Exam) => void })
             <span className="text-sm text-muted shrink-0">{dateLabel(e.date)}</span>
           </div>
           <div className="flex items-center gap-1.5 text-sm text-muted min-w-0">
-            <span className="size-2.5 rounded-full shrink-0" style={{ background: m.color }} />
+            <MateriaGlyph m={m} />
             <span className="truncate">{m.name}</span>
           </div>
         </div>
