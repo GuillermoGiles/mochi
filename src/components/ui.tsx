@@ -284,5 +284,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
 }
 
 export function errorText(e: unknown) {
+  if (e instanceof TypeError && /fetch|network|load failed/i.test(e.message))
+    return 'No se pudo conectar. Revisá tu conexión (o si un bloqueador de anuncios está frenando a Google) y reintentá.';
   return e instanceof Error ? e.message : 'Algo salió mal';
 }

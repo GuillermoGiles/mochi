@@ -233,28 +233,51 @@ export async function createTextFile(
 }
 
 // Subida "reanudable": sirve para archivos grandes y permite mostrar el progreso.
+// Si se corta la conexión (o el token venció) reintenta solo un par de veces antes de rendirse.
 export async function upload(file: File, parent: string, onProgress?: (fraction: number) => void): Promise<DFile> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await uploadOnce(file, parent, onProgress);
+    } catch (e) {
+      const retriable = e instanceof TypeError || e instanceof UploadNetworkError || e instanceof TokenExpired;
+      if (!retriable || attempt >= 2) throw e instanceof TypeError ? new UploadNetworkError() : e;
+      if (e instanceof TokenExpired) cached = null;
+      onProgress?.(0);
+      await new Promise((ok) => setTimeout(ok, 1000 * (attempt + 1)));
+    }
+  }
+}
+
+class UploadNetworkError extends Error {
+  constructor() {
+    super('No se pudo conectar con Google Drive. Revisá tu conexión (o si un bloqueador de anuncios lo está frenando) y reintentá.');
+  }
+}
+class TokenExpired extends Error {}
+
+async function uploadOnce(file: File, parent: string, onProgress?: (fraction: number) => void): Promise<DFile> {
   const token = await getToken();
+  // Sin encabezados X-Upload-*: el tipo va en los datos del archivo, así el navegador hace menos chequeos.
   const init = await fetch(`${UPLOAD}/files?uploadType=resumable&fields=${FIELDS}`, {
     method: 'POST',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      'Content-Type': 'application/json; charset=UTF-8',
-      'X-Upload-Content-Type': file.type || 'application/octet-stream',
-      'X-Upload-Content-Length': String(file.size),
-    },
-    body: JSON.stringify({ name: file.name, parents: [parent] }),
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json; charset=UTF-8' },
+    body: JSON.stringify({ name: file.name, parents: [parent], ...(file.type && { mimeType: file.type }) }),
   });
+  if (init.status === 401) throw new TokenExpired();
   const location = init.headers.get('Location');
-  if (!init.ok || !location) throw new Error(`No se pudo empezar la subida de ${file.name}`);
+  if (!init.ok || !location) {
+    const text = await init.text().catch(() => '');
+    if (/storageQuotaExceeded/.test(text)) throw new Error('Tu Google Drive está lleno.');
+    throw new Error(`No se pudo empezar la subida de ${file.name} (${init.status})`);
+  }
 
   return new Promise((resolve, reject) => {
     const x = new XMLHttpRequest();
     x.open('PUT', location);
     x.upload.onprogress = (e) => e.lengthComputable && onProgress?.(e.loaded / e.total);
     x.onload = () =>
-      x.status < 300 ? resolve(remember(JSON.parse(x.responseText))) : reject(new Error(`Falló la subida de ${file.name}`));
-    x.onerror = () => reject(new Error('Se cortó la conexión'));
+      x.status < 300 ? resolve(remember(JSON.parse(x.responseText))) : reject(new Error(`Falló la subida de ${file.name} (${x.status})`));
+    x.onerror = () => reject(new UploadNetworkError());
     x.send(file);
   });
 }
