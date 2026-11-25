@@ -1,7 +1,8 @@
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FileItem } from '../lib/facu';
 import { KIND_STYLE, fmtDate, kindOf } from '../lib/files';
 import { openFile } from '../lib/router';
+import { canThumb, localThumb } from '../lib/thumbs';
 import { Check, Offline } from './icons';
 import RenameInput from './RenameInput';
 import type { Item } from '../lib/explorer';
@@ -48,7 +49,32 @@ export default function FileTile({
   cut?: boolean;
 }) {
   const s = KIND_STYLE[kindOf(file)];
-  const [thumbOk, setThumbOk] = useState(!!file.thumbnailLink);
+  const [thumb, setThumb] = useState(file.thumbnailLink?.replace(/=s\d+$/, '=s400'));
+  const [driveFailed, setDriveFailed] = useState(!file.thumbnailLink);
+  const box = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    setThumb(file.thumbnailLink?.replace(/=s\d+$/, '=s400'));
+    setDriveFailed(!file.thumbnailLink);
+  }, [file.id, file.modifiedTime, file.thumbnailLink]);
+  // Sin miniatura de Drive: se arma una acá, recién cuando el cuadradito está por verse.
+  useEffect(() => {
+    if (!driveFailed || !canThumb(file) || !box.current) return;
+    let alive = true;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        obs.disconnect();
+        localThumb(file).then((url) => alive && setThumb(url ?? undefined));
+      },
+      { rootMargin: '400px' },
+    );
+    obs.observe(box.current);
+    return () => {
+      alive = false;
+      obs.disconnect();
+    };
+  }, [driveFailed, file.id, file.modifiedTime]);
+  const thumbOk = !!thumb;
   const press = useRef<number>(undefined);
   const longPressed = useRef(false);
   const pointer = useRef('mouse');
@@ -91,17 +117,22 @@ export default function FileTile({
         }`}
       >
         <div
+          ref={box}
           className="relative aspect-[4/3] grid place-items-center overflow-hidden"
           style={{ background: `color-mix(in srgb, ${s.color} 6%, var(--sunken))` }}
         >
           {thumbOk ? (
             <img
-              src={file.thumbnailLink!.replace(/=s\d+$/, '=s400')}
+              src={thumb}
               alt=""
               loading="lazy"
               draggable={false}
               referrerPolicy="no-referrer"
-              onError={() => setThumbOk(false)}
+              onError={() => {
+                // Si falla la de Drive, se prueba con la hecha acá.
+                setThumb(undefined);
+                setDriveFailed(true);
+              }}
               className="absolute inset-0 size-full object-cover object-top"
             />
           ) : (
