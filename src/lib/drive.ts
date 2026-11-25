@@ -190,14 +190,16 @@ export async function download(id: string, size?: number, onProgress?: (p: numbe
   return new Blob(chunks as BlobPart[], { type: r.headers.get('Content-Type') ?? '' });
 }
 
-// Presentaciones (.pptx): Drive hace una copia convertida a Google Slides, la exporta a PDF y la borra.
+// Archivos de Office (.pptx, .docx, .xlsx...): Drive hace una copia convertida a Google Slides/Docs/Sheets,
+// la exporta a PDF y la borra.
 // La copia va a la raíz de Mi unidad para que no aparezca un instante en la carpeta de la materia.
-export async function slidesPdf(id: string) {
+export type GoogleKind = 'presentation' | 'document' | 'spreadsheet';
+export async function convertedPdf(id: string, to: GoogleKind) {
   if (DEMO) return (await import('./demo')).demoBlob(id);
   const r = await req(`${API}/files/${id}/copy?fields=id`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: 'Mochi (temporal, se borra solo)', mimeType: 'application/vnd.google-apps.presentation', parents: ['root'] }),
+    body: JSON.stringify({ name: 'Mochi (temporal, se borra solo)', mimeType: `application/vnd.google-apps.${to}`, parents: ['root'] }),
   });
   const copy: { id: string } = await r.json();
   try {
@@ -206,6 +208,8 @@ export async function slidesPdf(id: string) {
     req(`${API}/files/${copy.id}`, { method: 'DELETE' }).catch(() => {});
   }
 }
+
+export const slidesPdf = (id: string) => convertedPdf(id, 'presentation');
 
 export async function saveContent(id: string, content: Blob) {
   const r = await req(`${UPLOAD}/files/${id}?uploadType=media&fields=${FIELDS}`, { method: 'PATCH', body: content });

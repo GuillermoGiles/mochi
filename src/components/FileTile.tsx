@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { FileItem } from '../lib/facu';
-import { KIND_STYLE, fmtDate, kindOf } from '../lib/files';
+import { KIND_STYLE, extOf, fmtDate, fmtSize, kindOf } from '../lib/files';
 import { openFile } from '../lib/router';
 import { canThumb, localThumb } from '../lib/thumbs';
 import { Check, Offline } from './icons';
@@ -48,7 +48,10 @@ export default function FileTile({
   // Cortado (Ctrl+X): se ve más clarito hasta que se pega.
   cut?: boolean;
 }) {
-  const s = KIND_STYLE[kindOf(file)];
+  const kind = kindOf(file);
+  const s = KIND_STYLE[kind];
+  // Para PDF, Word, etc. la etiqueta de siempre; para el resto, la extensión (ZIP, MP3, SQL...).
+  const label = kind === 'other' ? (extOf(file.name) || s.label).slice(0, 4).toUpperCase() : s.label;
   const [thumb, setThumb] = useState(file.thumbnailLink?.replace(/=s\d+$/, '=s400'));
   const [driveFailed, setDriveFailed] = useState(!file.thumbnailLink);
   const box = useRef<HTMLDivElement>(null);
@@ -136,7 +139,10 @@ export default function FileTile({
               className="absolute inset-0 size-full object-cover object-top"
             />
           ) : (
-            <DocGlyph color={s.color} label={s.label} />
+            <div className="flex flex-col items-center gap-1.5">
+              <DocGlyph color={s.color} label={label} />
+              {file.size && <span className="text-[11px] text-muted">{fmtSize(file.size)}</span>}
+            </div>
           )}
           {code && (
             <span className="absolute top-2 left-2 h-6 px-2 rounded-lg bg-surface/95 text-ink text-xs font-extrabold grid place-items-center shadow-sm">
@@ -148,7 +154,7 @@ export default function FileTile({
               className="absolute bottom-2 right-2 h-5 px-1.5 rounded-md text-[10px] font-extrabold grid place-items-center text-white"
               style={{ background: s.color }}
             >
-              {s.label}
+              {label}
             </span>
           )}
           {offline && (

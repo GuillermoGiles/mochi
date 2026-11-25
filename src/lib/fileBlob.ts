@@ -1,7 +1,7 @@
 // Contenido de un archivo: usa la copia guardada sin conexión si está al día,
 // y si no hay internet usa la copia aunque sea vieja.
 
-import { download, slidesPdf, type DFile } from './drive';
+import { convertedPdf, download, type DFile, type GoogleKind } from './drive';
 import { getList, getOffline, isNetworkError, putList, removeOffline, saveOffline } from './offline';
 
 export async function fileBlob(file: DFile, onProgress?: (p: number) => void): Promise<Blob> {
@@ -21,17 +21,20 @@ export async function fileBlob(file: DFile, onProgress?: (p: number) => void): P
 
 // Las presentaciones se ven como PDF. El PDF convertido queda guardado, así la próxima vez
 // abre al instante y también sin internet.
-export async function slidesBlob(file: DFile): Promise<Blob> {
+export const slidesBlob = (file: DFile) => convertedBlob(file, 'presentation');
+
+// Lo mismo para Word y Excel (se usa para las vistas previas).
+export async function convertedBlob(file: DFile, to: GoogleKind): Promise<Blob> {
   const key = `pdf:${file.id}`;
   const saved = await getList<{ modifiedTime: string; blob: Blob }>(key);
   if (saved && saved.modifiedTime === file.modifiedTime) return saved.blob;
   try {
-    const blob = await slidesPdf(file.id);
+    const blob = await convertedPdf(file.id, to);
     await putList(key, { modifiedTime: file.modifiedTime, blob });
     return blob;
   } catch (e) {
     if (saved) return saved.blob;
-    if (isNetworkError(e)) throw new Error('Sin conexión. Esta presentación todavía no se abrió con internet.');
+    if (isNetworkError(e)) throw new Error(to === 'presentation' ? 'Sin conexión. Esta presentación todavía no se abrió con internet.' : 'Sin conexión.');
     throw e;
   }
 }
