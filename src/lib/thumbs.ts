@@ -2,9 +2,9 @@
 // pide estar logueado en Google en el navegador), se dibuja la primera página del PDF o se achica
 // la imagen. Queda guardada, así la próxima vez aparece al instante y también sin internet.
 
-import { kindOf } from './files';
+import { canPreview, kindOf } from './files';
 import type { DFile } from './drive';
-import { fileBlob } from './fileBlob';
+import { fileBlob, slidesBlob } from './fileBlob';
 import { getList, getOffline, putList } from './offline';
 
 const WIDTH = 480;
@@ -15,6 +15,7 @@ type Cached = { modifiedTime: string; blob: Blob };
 
 export function canThumb(f: DFile) {
   const k = kindOf(f);
+  if (k === 'slides') return canPreview(f);
   return k === 'pdf' || (k === 'image' && !/\.(heic|svg)$/i.test(f.name));
 }
 
@@ -44,9 +45,10 @@ async function make(f: DFile): Promise<string | null> {
 
 async function render(f: DFile): Promise<Blob | null> {
   const k = kindOf(f);
-  const tooBig = Number(f.size) > MAX_BYTES && !(await getOffline(f.id));
+  const tooBig = Number(f.size) > MAX_BYTES && !(await getOffline(f.id)) && !(k === 'slides' && (await getList(`pdf:${f.id}`)));
   if (tooBig) return null;
-  const src = await fileBlob(f);
+  // Las presentaciones se convierten a PDF en Drive (la misma copia que usa el visor, así abrirla después es instantáneo).
+  const src = k === 'slides' ? await slidesBlob(f) : await fileBlob(f);
   const canvas = k === 'image' ? await drawImage(src) : await drawPdf(src);
   return canvas ? new Promise((ok) => canvas.toBlob(ok, 'image/webp', 0.8)) : null;
 }
