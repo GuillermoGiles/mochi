@@ -198,11 +198,37 @@ input[type='date']::-webkit-date-and-time-value {
 }
 
 .pdf-page {
+  position: relative;
   background: #fff;
   width: 100%;
   box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
   border-radius: 4px;
   overflow: hidden;
+}
+
+/* Resaltado de la búsqueda dentro de documentos */
+.pdf-hl {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.pdf-hl > i {
+  position: absolute;
+  background: rgb(255 214 0 / 0.45);
+  mix-blend-mode: multiply;
+  border-radius: 2px;
+}
+.pdf-hl > i.on {
+  background: rgb(255 140 0 / 0.6);
+  box-shadow: 0 0 0 2px rgb(255 120 0);
+}
+::highlight(find) {
+  background-color: rgb(255 214 0 / 0.5);
+  color: inherit;
+}
+::highlight(find-on) {
+  background-color: rgb(255 140 0);
+  color: #000;
 }
 
 /* Entradas suaves de pantallas, listas y ventanas */

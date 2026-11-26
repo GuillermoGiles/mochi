@@ -1,7 +1,7 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import ErrorBoundary from '../components/ErrorBoundary';
 import MoveModal from '../components/MoveModal';
-import { Back, ChevronLeft, ChevronRight, Download, External, Move, Offline, Pencil, Share, Trash } from '../components/icons';
+import { Back, ChevronLeft, ChevronRight, Download, External, Move, Offline, Pencil, SearchIcon, Share, Trash } from '../components/icons';
 import { canSendToApp, sendFiles } from '../lib/send';
 import { Button, ConfirmModal, FileBadge, IconButton, Menu, PromptModal, Spinner, errorText, useLockScroll, useToast } from '../components/ui';
 import { notifyChanged, useFacu } from '../lib/context';
@@ -26,6 +26,7 @@ export default function Viewer({ id }: { id: string }) {
   const [error, setError] = useState('');
   const [modal, setModal] = useState<'rename' | 'move' | 'delete' | null>(null);
   const [isOffline, setIsOffline] = useState(false);
+  const [finding, setFinding] = useState(false);
 
   useEffect(() => {
     if (file) return;
@@ -77,6 +78,10 @@ export default function Viewer({ id }: { id: string }) {
 
   useLockScroll();
 
+  const fileKind = file ? kindOf(file) : 'other';
+  const searchable = !!blob && (fileKind === 'pdf' || fileKind === 'slides' || fileKind === 'word');
+  useEffect(() => setFinding(false), [id]);
+
   // Anterior y siguiente dentro de la carpeta (o búsqueda) desde la que se abrió.
   const siblings = getViewerList();
   const pos = siblings.indexOf(id);
@@ -86,14 +91,22 @@ export default function Viewer({ id }: { id: string }) {
   useEffect(() => {
     const k = (e: KeyboardEvent) => {
       if (modal) return;
-      if (e.key === 'Escape') return closeFile();
+      // Ctrl+F (o Cmd+F) abre la búsqueda propia en vez de la del navegador, que no ve el texto de los PDF.
+      if (searchable && (e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setFinding(true);
+        dispatchEvent(new Event('mochi:find'));
+        return;
+      }
+      if (e.defaultPrevented) return;
+      if (e.key === 'Escape') return finding ? setFinding(false) : closeFile();
       if (/INPUT|TEXTAREA/.test((e.target as HTMLElement).tagName)) return;
       if (e.key === 'ArrowLeft' && prevId) switchFile(prevId);
       if (e.key === 'ArrowRight' && nextId) switchFile(nextId);
     };
     addEventListener('keydown', k);
     return () => removeEventListener('keydown', k);
-  }, [modal, prevId, nextId]);
+  }, [modal, prevId, nextId, searchable, finding]);
 
   // Deslizar el dedo de costado para pasar de archivo.
   const touch = useRef<{ x: number; y: number } | null>(null);
@@ -219,8 +232,8 @@ export default function Viewer({ id }: { id: string }) {
     body = (
       <ErrorBoundary resetKey={id} onClose={closeFile}>
       <Suspense fallback={<Center><Spinner /></Center>}>
-        {(kind === 'pdf' || kind === 'slides') && <PdfView blob={blob} />}
-        {kind === 'word' && <DocxView blob={blob} />}
+        {(kind === 'pdf' || kind === 'slides') && <PdfView blob={blob} find={finding} onCloseFind={() => setFinding(false)} />}
+        {kind === 'word' && <DocxView blob={blob} find={finding} onCloseFind={() => setFinding(false)} />}
         {kind === 'excel' && <SheetView blob={blob} />}
       </Suspense>
       </ErrorBoundary>
@@ -253,6 +266,11 @@ export default function Viewer({ id }: { id: string }) {
         )}
         {file && (
           <>
+            {searchable && (
+              <IconButton label="Buscar en el documento (Ctrl+F)" onClick={() => setFinding((f) => !f)}>
+                <SearchIcon />
+              </IconButton>
+            )}
             {canSendToApp() ? (
               <IconButton label="Enviar a otra app" onClick={onSend}>
                 <Share />
